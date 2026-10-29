@@ -1,0 +1,83 @@
+{
+  "name": "chainlens-desktop",
+  "version": "1.1.2",
+  "description": "Chainlens multichain desktop explorer",
+  "author": "Chainlens",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {
+    "start": "node node_modules/electron/install.js && electron .",
+    "package": "electron-builder --win portable --x64 --publish never",
+    "package:win": "electron-builder --win portable --x64 --publish never",
+    "package:mac": "electron-builder --mac --x64 --arm64 --publish never",
+    "package:linux": "electron-builder --linux --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "42.11.18",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "com.chainlens.explorer",
+    "productName": "Chainlens",
+    "directories": {
+      "output": "../release"
+    },
+    "files": [
+      "main.cjs",
+      "ui-dist/**/*",
+      "api.mjs",
+      "package.json",
+      "icon.png",
+      "icon.ico"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false,
+      "icon": "icon.ico"
+    },
+    "portable": {
+      "artifactName": "Chainlens-Windows-${arch}.${ext}"
+    },
+    "mac": {
+      "category": "public.app-category.finance",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "Chainlens-macOS-${arch}.${ext}",
+      "identity": "-"
+    },
+    "linux": {
+      "category": "Finance",
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ],
+      "artifactName": "Chainlens-Linux-${arch}.${ext}",
+      "icon": "icon.png"
+    },
+    "dmg": {
+      "sign": false
+    },
+    "publish": null
+  }
+}

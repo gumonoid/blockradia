@@ -1,0 +1,33 @@
+{
+  "name": "chainlens",
+  "version": "1.1.2",
+  "private": true,
+  "description": "A multichain desktop blockchain explorer with wallet relationship graphs.",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "node desktop/build.mjs",
+    "check": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs",
+    "desktop:install": "npm ci --prefix desktop",
+    "start": "npm run build && npm --prefix desktop start",
+    "dist:win": "npm run build && npm --prefix desktop run package:win",
+    "dist:mac": "npm run build && npm --prefix desktop run package:mac",
+    "dist:linux": "npm run build && npm --prefix desktop run package:linux"
+  },
+  "dependencies": {
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "lucide-react": "1.31.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "6.0.2",
+    "vite": "8.0.13",
+    "typescript": "5.9.3",
+    "@types/node": "22.19.19",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3"
+  },
+  "type": "module"
+}

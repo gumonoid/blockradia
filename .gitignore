@@ -1,0 +1,14 @@
+node_modules/
+desktop/node_modules/
+desktop/ui-dist/
+desktop/api.mjs
+release/
+.env*
+*.pem
+*.p12
+*.pfx
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+*.log
+work/

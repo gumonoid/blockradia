@@ -1,0 +1,12 @@
+import {build} from 'vite';
+import react from '@vitejs/plugin-react';
+import ts from 'typescript';
+import {readFile,writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.dirname(fileURLToPath(import.meta.url));
+await build({configFile:false,root:path.join(root,'ui'),plugins:[react()],base:'/',build:{outDir:path.join(root,'ui-dist'),emptyOutDir:true}});
+const source=await readFile(path.join(root,'../app/api/explorer/route.ts'),'utf8');
+const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}});
+await writeFile(path.join(root,'api.mjs'),result.outputText);
+console.log('Desktop UI and API built.');
