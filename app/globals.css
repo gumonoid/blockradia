@@ -15,3 +15,5 @@
 /* Keep the longer brand within the compact sidebar. */
 .brand{font-size:25px;letter-spacing:-1px;white-space:nowrap}
 @media(max-width:950px){.brand{font-size:21px;gap:6px}.brand-mark{flex-shrink:0}}
+
+.solana-search-modes{padding:14px 0}.solana-search-modes>div{display:flex;gap:8px;flex-wrap:wrap}.solana-search-modes button{padding:10px 16px;border:1px solid #d9cbea;border-radius:8px;color:#715490;background:white}.solana-search-modes button[aria-pressed="true"]{background:#8261bd;color:white}.solana-search-modes p{font-size:12px;color:#83728f;line-height:1.6}
