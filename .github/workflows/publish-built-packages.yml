@@ -39,9 +39,9 @@ jobs:
             git fetch --no-tags origin "$source_sha"
             git diff --exit-code "$source_sha" HEAD -- app components lib desktop package.json package-lock.json tsconfig.json
           done
-          gh run download "$WINDOWS_LINUX_RUN" --name chainlens-windows --dir release-assets
-          gh run download "$WINDOWS_LINUX_RUN" --name chainlens-linux --dir release-assets
-          gh run download "$MACOS_RUN" --name chainlens-macos --dir release-assets
+          gh run download "$WINDOWS_LINUX_RUN" --name blockradia-windows --dir release-assets
+          gh run download "$WINDOWS_LINUX_RUN" --name blockradia-linux --dir release-assets
+          gh run download "$MACOS_RUN" --name blockradia-macos --dir release-assets
       - name: Verify package completeness and checksums
         run: node scripts/checksums.mjs release-assets
       - name: Publish private repository release
@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
           if [ "$existing" != "true" ]; then
-            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "Chainlens ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "BlockRadia ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
           fi
           gh release upload "$tag" release-assets/* --clobber
           gh release edit "$tag" --draft=false --latest

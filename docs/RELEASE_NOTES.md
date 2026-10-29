@@ -1,4 +1,4 @@
-# Chainlens 1.1.2
+# BlockRadia 1.1.2
 
 Desktop packages built from the source code in this repository.
 

@@ -54,8 +54,8 @@ jobs:
         run: npm --prefix desktop run ${{ matrix.command }}
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: chainlens-${{ matrix.platform }}
-          path: release/Chainlens-*
+          name: blockradia-${{ matrix.platform }}
+          path: release/BlockRadia-*
           if-no-files-found: error
           compression-level: 0
           retention-days: 1
@@ -76,7 +76,7 @@ jobs:
           node-version: '22'
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
-          pattern: chainlens-*
+          pattern: blockradia-*
           path: release-assets
           merge-multiple: true
       - name: Reuse completed Windows and Linux packages
@@ -90,8 +90,8 @@ jobs:
           [[ "$reuse_sha" =~ ^[0-9a-f]{40}$ ]] || exit 1
           git fetch --no-tags origin "$reuse_sha"
           git diff --exit-code "$reuse_sha" HEAD -- app components lib desktop package.json package-lock.json tsconfig.json
-          gh run download "$REUSE_RUN" --name chainlens-windows --dir release-assets
-          gh run download "$REUSE_RUN" --name chainlens-linux --dir release-assets
+          gh run download "$REUSE_RUN" --name blockradia-windows --dir release-assets
+          gh run download "$REUSE_RUN" --name blockradia-linux --dir release-assets
       - name: Verify all platforms and generate checksums
         run: node scripts/checksums.mjs release-assets
       - name: Publish private repository release
@@ -104,7 +104,7 @@ jobs:
             exit 1
           fi
           if [ "$existing" != "true" ]; then
-            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "Chainlens ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "BlockRadia ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
           fi
           gh release upload "$tag" release-assets/* --clobber
           gh release edit "$tag" --draft=false --latest

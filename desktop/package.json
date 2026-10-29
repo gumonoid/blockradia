@@ -1,8 +1,8 @@
 {
-  "name": "chainlens-desktop",
+  "name": "blockradia-desktop",
   "version": "1.1.2",
-  "description": "Chainlens multichain desktop explorer",
-  "author": "Chainlens",
+  "description": "BlockRadia multichain desktop explorer",
+  "author": "BlockRadia",
   "private": true,
   "main": "main.cjs",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "build": {
     "appId": "com.chainlens.explorer",
-    "productName": "Chainlens",
+    "productName": "BlockRadia",
     "directories": {
       "output": "../release"
     },
@@ -43,7 +43,7 @@
       "icon": "icon.ico"
     },
     "portable": {
-      "artifactName": "Chainlens-Windows-${arch}.${ext}"
+      "artifactName": "BlockRadia-Windows-${arch}.${ext}"
     },
     "mac": {
       "category": "public.app-category.finance",
@@ -63,7 +63,7 @@
           ]
         }
       ],
-      "artifactName": "Chainlens-macOS-${arch}.${ext}",
+      "artifactName": "BlockRadia-macOS-${arch}.${ext}",
       "identity": "-"
     },
     "linux": {
@@ -72,7 +72,7 @@
         "AppImage",
         "tar.gz"
       ],
-      "artifactName": "Chainlens-Linux-${arch}.${ext}",
+      "artifactName": "BlockRadia-Linux-${arch}.${ext}",
       "icon": "icon.png"
     },
     "dmg": {

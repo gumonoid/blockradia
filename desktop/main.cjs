@@ -3,11 +3,13 @@ const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
+// Keep the existing profile so local wallet history and nicknames survive the rename.
+app.setPath('userData',path.join(app.getPath('appData'),'chainlens-desktop'));
 let window,server;
 const lock=app.requestSingleInstanceLock();
 if(!lock){app.quit()}else{
 app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.show();window.focus()}});
-app.whenReady().then(start).catch(error=>{dialog.showErrorBox('Chainlens — ошибка запуска',String(error));app.quit()});
+app.whenReady().then(start).catch(error=>{dialog.showErrorBox('BlockRadia — ошибка запуска',String(error));app.quit()});
 }
 async function start(){
 const {GET}=await import(pathToFileURL(path.join(__dirname,'api.mjs')).href);
@@ -24,7 +26,7 @@ const ext=path.extname(filename);const mime={'.html':'text/html; charset=utf-8',
 res.writeHead(200,{'Content-Type':mime[ext]||'application/octet-stream','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-src 'none'"});res.end(content);
 }catch(error){res.writeHead(error.code==='ENOENT'?404:500,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Не удалось выполнить запрос'}));}});
 await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(19237,'127.0.0.1',resolve)});
-window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'Chainlens',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}});
+window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}});
 window.webContents.setWindowOpenHandler(({url})=>{if(/^https:\/\//i.test(url))shell.openExternal(url);return {action:'deny'}});
 window.webContents.on('will-navigate',(event,url)=>{if(!url.startsWith('http://127.0.0.1:19237/')){event.preventDefault();if(/^https:\/\//i.test(url))shell.openExternal(url)}});
 await window.loadURL('http://127.0.0.1:19237/');

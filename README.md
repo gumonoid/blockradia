@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/chainlens-banner.svg" alt="Chainlens — connect the dots across blockchains" width="100%" />
+<img src="docs/assets/blockradia-banner.svg" alt="BlockRadia — connect the dots across blockchains" width="100%" />
 
 ### A desktop workspace for exploring wallets and following on-chain transfers.
 
@@ -14,16 +14,18 @@
 
 ## Download
 
+The existing v1.1.2 downloads were published under the former name **Chainlens**. They retain their original filenames and branding; this source rename does not publish a new release.
+
 Choose the package for your operating system. Downloads are hosted in this **private repository**, so you must be signed in to an account with access.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
-| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-Windows-x64.exe) |
-| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-macOS-arm64.zip) |
-| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-macOS-x64.zip) |
-| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/chainlens/releases/latest/download/Chainlens-Linux-x64.tar.gz) |
+| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-Windows-x64.exe) |
+| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-arm64.zip) |
+| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-x64.zip) |
+| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-Linux-x64.tar.gz) |
 
-[All releases](https://github.com/gumonoid/chainlens/releases) · [SHA-256 checksums](https://github.com/gumonoid/chainlens/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/chainlens/actions/workflows/desktop-release.yml)
+[All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
 
 **Getting started:** open the Windows EXE, install the macOS application from its DMG, or make the Linux AppImage executable and run it. Node.js is **not** required for packaged downloads. An internet connection is required for blockchain and market data.
 
@@ -87,8 +89,8 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 - Windows, macOS, or Linux. Native platform packages are built on their corresponding operating systems.
 
 ```bash
-git clone https://github.com/gumonoid/chainlens.git
-cd chainlens
+git clone https://github.com/gumonoid/blockradia.git
+cd blockradia
 npm ci
 npm run desktop:install
 npm start
@@ -156,8 +158,8 @@ Maintainers can run it from **Actions → Build desktop packages → Run workflo
 
 <div align="center">
 
-**Chainlens — make blockchain relationships easier to explore.**
+**BlockRadia — make blockchain relationships easier to explore.**
 
-[Download](#download) · [Latest release](https://github.com/gumonoid/chainlens/releases/latest) · [Changelog](CHANGELOG.md)
+[Download](#download) · [Latest release](https://github.com/gumonoid/blockradia/releases/latest) · [Changelog](CHANGELOG.md)
 
 </div>
