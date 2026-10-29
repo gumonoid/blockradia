@@ -4,6 +4,8 @@
 
 ### A desktop workspace for exploring wallets and following on-chain transfers.
 
+BlockRadia helps both professional blockchain researchers and everyday users explore wallet activity, trace transfers, and understand connections between addresses.
+
 **Real API data · Interactive relationship graphs · Local research history**
 
 [Download](#download) · [Features](#features) · [Supported networks](#supported-networks) · [Build from source](#build-from-source) · [Release notes](CHANGELOG.md)
