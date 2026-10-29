@@ -1,6 +1,12 @@
 name: Build desktop packages
 on:
   workflow_dispatch:
+    inputs:
+      reuse_run:
+        description: Optional completed run whose Windows and Linux artifacts should be reused
+        type: string
+        required: false
+        default: ''
   push:
     tags: ['v*']
 permissions:
@@ -27,16 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-latest
-            platform: windows
-            command: package:win
-          - os: macos-latest
-            platform: macos
-            command: package:mac
-          - os: ubuntu-latest
-            platform: linux
-            command: package:linux
+        include: ${{ fromJSON(inputs.reuse_run && '[{"os":"macos-15-intel","platform":"macos","command":"package:mac"}]' || '[{"os":"windows-latest","platform":"windows","command":"package:win"},{"os":"macos-15-intel","platform":"macos","command":"package:mac"},{"os":"ubuntu-latest","platform":"linux","command":"package:linux"}]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     env:
@@ -68,6 +65,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      actions: read
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
@@ -81,6 +79,15 @@ jobs:
           pattern: chainlens-*
           path: release-assets
           merge-multiple: true
+      - name: Reuse completed Windows and Linux packages
+        if: ${{ inputs.reuse_run }}
+        env:
+          REUSE_RUN: ${{ inputs.reuse_run }}
+        shell: bash
+        run: |
+          [[ "$REUSE_RUN" =~ ^[0-9]+$ ]] || exit 1
+          gh run download "$REUSE_RUN" --name chainlens-windows --dir release-assets
+          gh run download "$REUSE_RUN" --name chainlens-linux --dir release-assets
       - name: Verify all platforms and generate checksums
         run: node scripts/checksums.mjs release-assets
       - name: Publish private repository release

@@ -27,7 +27,7 @@ Choose the package for your operating system. Downloads are hosted in this **pri
 
 **Getting started:** open the Windows EXE, install the macOS application from its DMG, or make the Linux AppImage executable and run it. Node.js is **not** required for packaged downloads. An internet connection is required for blockchain and market data.
 
-Packages are currently unsigned; macOS packages are not notarized. The application interface is in Russian; this repository's documentation is in English. The banner above is an illustration, not a screenshot of live data.
+Windows packages are unsigned; macOS packages use ad-hoc signing and are not notarized. The application interface is in Russian; this repository's documentation is in English. The banner above is an illustration, not a screenshot of live data.
 
 ## Features
 
