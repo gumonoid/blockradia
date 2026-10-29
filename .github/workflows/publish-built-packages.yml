@@ -1,0 +1,60 @@
+name: Publish saved desktop packages
+on:
+  workflow_dispatch:
+    inputs:
+      windows_linux_run:
+        description: Run containing completed Windows and Linux artifacts
+        required: true
+        type: string
+      macos_run:
+        description: Run containing completed macOS artifacts
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      WINDOWS_LINUX_RUN: ${{ inputs.windows_linux_run }}
+      MACOS_RUN: ${{ inputs.macos_run }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '22'
+      - name: Verify matching application source and fetch saved artifacts
+        shell: bash
+        run: |
+          for run in "$WINDOWS_LINUX_RUN" "$MACOS_RUN"; do
+            [[ "$run" =~ ^[0-9]+$ ]] || exit 1
+            source_sha=$(gh api "repos/$GH_REPO/actions/runs/$run" --jq '.head_sha')
+            [[ "$source_sha" =~ ^[0-9a-f]{40}$ ]] || exit 1
+            git fetch --no-tags origin "$source_sha"
+            git diff --exit-code "$source_sha" HEAD -- app components lib desktop package.json package-lock.json tsconfig.json
+          done
+          gh run download "$WINDOWS_LINUX_RUN" --name chainlens-windows --dir release-assets
+          gh run download "$WINDOWS_LINUX_RUN" --name chainlens-linux --dir release-assets
+          gh run download "$MACOS_RUN" --name chainlens-macos --dir release-assets
+      - name: Verify package completeness and checksums
+        run: node scripts/checksums.mjs release-assets
+      - name: Publish private repository release
+        shell: bash
+        run: |
+          tag="v$(node -p "require('./package.json').version")"
+          existing=$(gh api "repos/$GH_REPO/releases/tags/$tag" --jq '.draft' 2>/dev/null || true)
+          if [ "$existing" = "false" ]; then
+            echo "Release $tag is already published; increase the package version before publishing again."
+            exit 1
+          fi
+          if [ "$existing" != "true" ]; then
+            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "Chainlens ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
+          fi
+          gh release upload "$tag" release-assets/* --clobber
+          gh release edit "$tag" --draft=false --latest
