@@ -86,6 +86,10 @@ jobs:
         shell: bash
         run: |
           [[ "$REUSE_RUN" =~ ^[0-9]+$ ]] || exit 1
+          reuse_sha=$(gh api "repos/$GH_REPO/actions/runs/$REUSE_RUN" --jq '.head_sha')
+          [[ "$reuse_sha" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          git fetch --no-tags origin "$reuse_sha"
+          git diff --exit-code "$reuse_sha" HEAD -- app components lib desktop package.json package-lock.json tsconfig.json scripts tests
           gh run download "$REUSE_RUN" --name chainlens-windows --dir release-assets
           gh run download "$REUSE_RUN" --name chainlens-linux --dir release-assets
       - name: Verify all platforms and generate checksums
