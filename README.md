@@ -88,7 +88,7 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 ### Shared server mode
 
-BlockRadia can use one shared API server so desktop users do not need provider keys. The backend, Docker image, and Render deployment configuration are included. See [deployment and desktop configuration](docs/SHARED_SERVER.md). A public service URL must be deployed and configured before distributing packages in this mode. Server hosting does not change provider plan restrictions.
+New desktop builds use the shared API at `https://blockradia-api.onrender.com`, so desktop users do not need provider keys. The backend, Docker image, and Render deployment configuration are included. See [deployment and desktop configuration](docs/SHARED_SERVER.md). Existing release packages predate this setup. The free preview server can take about a minute to wake after inactivity. Server hosting does not change provider plan restrictions.
 
 ### Requirements
 

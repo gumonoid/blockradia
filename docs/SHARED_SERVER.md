@@ -1,6 +1,6 @@
 # Shared BlockRadia API
 
-The desktop application keeps its loopback API and forwards queries to one configured HTTPS service. Provider keys stay on that service. Users need no provider accounts or keys. No service has been published yet: deployment requires the owner's hosting account and an assigned URL.
+The desktop application keeps its loopback API and forwards queries to `https://blockradia-api.onrender.com` by default. Provider keys stay on that service. Users need no provider accounts or keys. Set `BLOCKRADIA_API_URL` at build time to override the origin, or set it to `direct` to build a standalone direct-provider desktop package.
 
 ## Deploy on Render
 
@@ -22,7 +22,7 @@ With Node.js 22.13+:
 node --env-file=.env.local --experimental-strip-types server/start.mjs
 ```
 
-The server binds to port 8080 (`PORT` overrides it). For the desktop preview, set `BLOCKRADIA_API_URL=http://127.0.0.1:8080` before launching or building. Without a configured service URL the app retains its direct-provider mode. Do not distribute a package until its real shared-service URL has been set and tested.
+The server binds to port 8080 (`PORT` overrides it). For the desktop preview, set `BLOCKRADIA_API_URL=http://127.0.0.1:8080` before building. The source API route uses direct providers unless `BLOCKRADIA_API_URL` is set; the packaged desktop app loads its service origin from generated `desktop/service.json`.
 
 ## Docker / other hosts
 
