@@ -48,6 +48,8 @@ Balance retrieval is independent from transaction-history decoding. The balance 
 
 ## Supported networks
 
+Base and Polygon are temporarily disabled in the application's network selector while an alternative indexer is evaluated. Their adapters and saved research records are retained. The other six networks remain available.
+
 | Network | Native asset | Data source | Relationship coverage |
 | :--- | :---: | :--- | :--- |
 | Ethereum | ETH | Blockscout / public RPC | Native, ERC-20, and internal transfers when the indexer is available |
