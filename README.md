@@ -53,7 +53,7 @@ Balance retrieval is independent from transaction-history decoding. The balance 
 | Ethereum | ETH | Blockscout / public RPC | Native, ERC-20, and internal transfers when the indexer is available |
 | TRON | TRX | TronGrid | Recent native transfers and TRC-20 transfers |
 | Solana | SOL | Solana Mainnet RPC | Parsed system and supported SPL transfer instructions |
-| **TON** | **TON** | **TON Center v3** | Recent internal TON messages; friendly and raw Mainnet addresses |
+| TON | TON | TON Center v3 | Recent internal TON messages; friendly and raw Mainnet addresses |
 | Base | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 | Arbitrum | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 | Polygon | POL | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
