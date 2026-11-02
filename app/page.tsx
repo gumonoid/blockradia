@@ -1,5 +1,7 @@
 
 'use client';
+import './globals.css';
+import './workspace.css';
 import {useI18n,t as translate,getLocale} from '../lib/i18n';
 import {useEffect,useRef,useState} from 'react';
 import {Activity,ArrowDownLeft,ArrowUpRight,ArrowRight,Box,Check,ChevronDown,ChevronLeft,ChevronRight,Copy,Download,ExternalLink,Globe,HelpCircle,Layers,LayoutDashboard,Menu,Search,Settings,ShieldCheck,Star,Wallet,X,Zap,RefreshCw,Command,SlidersHorizontal,Bookmark,ChartNoAxesCombined,Clock,GitBranch} from 'lucide-react';
