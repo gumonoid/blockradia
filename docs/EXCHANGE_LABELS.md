@@ -25,3 +25,8 @@ Original brand images supplied through the CoinGecko public exchange catalog, bu
 - OKX: https://coin-images.coingecko.com/markets/images/96/small/WeChat_Image_20220117220452.png?1706864283
 - Kraken: https://coin-images.coingecko.com/markets/images/29/small/kraken.jpg?1706864265
 - Bybit: https://coin-images.coingecko.com/markets/images/698/small/bybit_spot.png?1706864649
+
+## Additional TRON address
+
+- MEXC: `TEPSrSYPDSQ7yXpMFPq91Fb1QEWpMkRGfn` — [Tokenview public label](https://trx.tokenview.io/en/address/TEPSrSYPDSQ7yXpMFPq91Fb1QEWpMkRGfn). This is not a Bybit attribution. Checked 2026-11-02.
+- MEXC logo: https://coin-images.coingecko.com/markets/images/409/small/164286be-32a5-4b58-978c-d072eea00eb9.jpeg?1775619316
