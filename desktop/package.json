@@ -30,6 +30,7 @@
       "solana-throttle.mjs",
       "remote-explorer.mjs",
       "alchemy.mjs",
+      "network-statistics.mjs",
       "package.json",
       "icon.png",
       "icon.ico"

@@ -48,7 +48,7 @@ Balance retrieval is independent from transaction-history decoding. The balance 
 
 ## Supported networks
 
-Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview uses a sample of recent RPC blocks; network-wide transaction totals and indexed-address counts are unavailable from this provider.
+Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview combines recent RPC blocks with official BaseScan / PolygonScan CSV exports: network-wide daily transactions, cumulative unique addresses, and a 30-day activity chart. Daily statistics show their UTC date and source; they are not live all-time transaction counters.
 
 | Network | Native asset | Data source | Relationship coverage |
 | :--- | :---: | :--- | :--- |

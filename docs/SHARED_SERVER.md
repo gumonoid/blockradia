@@ -12,7 +12,7 @@ The desktop application keeps its loopback API and forwards queries to `https://
 
 No release is created by these steps unless an existing publishing workflow is explicitly run. The version has not been changed.
 
-Free Render services sleep after 15 idle minutes and can take about a minute to wake. Existing client deadlines may end the first request; retry after startup. Free hosting is for preview, not a guarantee of availability for public production use. Provider plans and quotas still apply. Base and Polygon wallet histories use `ALCHEMY_API_KEY`, stored only in the server environment; enable both Mainnet endpoints in that Alchemy app. Their overview remains a recent-block sample, without network-wide totals.
+Free Render services sleep after 15 idle minutes and can take about a minute to wake. Existing client deadlines may end the first request; retry after startup. Free hosting is for preview, not a guarantee of availability for public production use. Provider plans and quotas still apply. Base and Polygon wallet histories use `ALCHEMY_API_KEY`, stored only in the server environment; enable both Mainnet endpoints in that Alchemy app. Their overview uses official BaseScan / PolygonScan CSV exports for daily network transactions and cumulative addresses, with an explicit UTC date. Export series are cached for an hour, parsed strictly, and rejected when the newest point is older than three days. Recent-block transactions remain independently available through RPC.
 
 ## Run locally
 
