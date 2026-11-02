@@ -80,9 +80,9 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
 2. Review the native balance as soon as it arrives; history and graph data follow separately.
-3. Select a node, add a nickname, then choose **Expand wallet relationships** in the inspector. The current UI uses the Russian label `Раскрыть связи кошелька`.
+3. Select a node, add a nickname, then choose **Expand wallet relationships** in the inspector.
 4. Select a connection to inspect its amounts and transaction hashes. Drag the graph or use zoom / fit controls to adjust the view.
-5. Open **History** (`История`) to rename or revisit wallets. Use CSV or JSON export to save the loaded research.
+5. Open **History** to rename or revisit wallets. Use CSV or JSON export to save the loaded research.
 
 ## Build from source
 
