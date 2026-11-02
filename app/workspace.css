@@ -15,7 +15,7 @@
 .search-progress small{color:var(--muted)}.search-progress button,.history-retry button{color:var(--purple)}
 .graph-heading{padding:20px 24px;background:var(--theme-surface);border-color:var(--line)}.graph-heading h2{font-size:14px;font-weight:600}
 .graph-eyebrow,.graph-heading p{color:var(--muted)}.graph-controls button{border-radius:4px}.graph-coverage{font-size:10px;line-height:1.7}
-:root[data-theme="light"],:root:not([data-theme]){--bg:#f3f4f2;--ink:#202924;--muted:#707a73;--purple:#28634e;--line:#dde2dd;--theme-surface:#fff;--theme-soft:#eaf0eb;--theme-graph:#14221e;--bg-ffffff:#fff;--bg-f0eafa:#e8eee9;--text-875fcd:#28634e;--bg-f7f4fb:#edf1ed;--text-383442:#202924;--bg-8d6bd8:#28634e;--bg-7b56c4:#1b4939;--bg-8a68d7:#28634e;--text-8864bd:#28634e;--bg-fcfaff:#edf3ee;--text-8f6ac2:#28634e;--bg-f0ecf8:#edf1ed;--text-9c7bc9:#28634e}
+:root[data-theme="light"],:root:not([data-theme]){--bg:#f5f4f8;--ink:#292534;--muted:#777080;--purple:#8159cc;--line:#e3dfea;--theme-surface:#fff;--theme-soft:#eee8f7;--theme-graph:#201a30;--bg-ffffff:#fff;--bg-f0eafa:#eee8f7;--text-875fcd:#8159cc;--bg-f7f4fb:#f1edf7;--text-383442:#292534;--bg-8d6bd8:#8159cc;--bg-7b56c4:#6c43b7;--bg-8a68d7:#8159cc;--text-8864bd:#8159cc;--bg-fcfaff:#f5f0fc;--text-8f6ac2:#8159cc;--bg-f0ecf8:#f1edf7;--text-9c7bc9:#8159cc}
 body{font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}
 .sidebar{width:220px;padding:27px 16px 16px;background:var(--theme-surface);border-right:1px solid var(--line)}
 .brand{font-size:24px;font-weight:650;letter-spacing:-1px;padding:0 8px;gap:10px}
@@ -85,8 +85,8 @@ tbody tr:hover{background:var(--theme-soft)}.mono,code{font-family:Consolas,"SFM
 .result-card{border:1px solid var(--line);border-radius:6px;background:var(--theme-surface);padding:24px;margin-bottom:24px}
 .result-grid small{font-size:10px;color:var(--muted)}.result-grid strong{font-weight:550;color:var(--ink)}
 .graph-panel{border-radius:6px;overflow:hidden;border-color:var(--line)}
-.graph-canvas{background:#14221e;background-image:radial-gradient(#ffffff0c .7px,transparent .7px);background-size:22px 22px}
-.graph-inspector{background:#192822;border-color:#35453d}.graph-toolbar{background:#192822;border-color:#35453d}
+.graph-canvas{background:#201a30;background-image:radial-gradient(#ffffff0c .7px,transparent .7px);background-size:22px 22px}
+.graph-inspector{background:#251f35;border-color:#40354e}.graph-toolbar{background:#251f35;border-color:#40354e}
 .graph-button{border-radius:4px}.history-panel{border-radius:6px}.history-row{padding-top:18px;padding-bottom:18px}
 .solana-search-modes{border-radius:4px;background:var(--theme-soft);border-color:var(--line);color:var(--ink)}
 .solana-search-modes p{color:var(--muted)}
