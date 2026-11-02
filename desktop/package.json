@@ -24,8 +24,11 @@
     },
     "files": [
       "main.cjs",
+      "service.json",
       "ui-dist/**/*",
       "api.mjs",
+      "solana-throttle.mjs",
+      "remote-explorer.mjs",
       "package.json",
       "icon.png",
       "icon.ico"

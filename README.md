@@ -86,6 +86,10 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 ## Build from source
 
+### Shared server mode
+
+BlockRadia can use one shared API server so desktop users do not need provider keys. The backend, Docker image, and Render deployment configuration are included. See [deployment and desktop configuration](docs/SHARED_SERVER.md). A public service URL must be deployed and configured before distributing packages in this mode. Server hosting does not change provider plan restrictions.
+
 ### Requirements
 
 - Node.js **22.13 or newer** and npm.

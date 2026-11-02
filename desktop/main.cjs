@@ -15,6 +15,7 @@ app.whenReady().then(start).catch(error=>{dialog.showErrorBox('BlockRadia — о
 }
 async function start(){
 for(const file of [path.join(__dirname,'../.env.local'),path.join(app.getPath('userData'),'.env.local')]){try{process.loadEnvFile(file);}catch(error){if(error.code!=='ENOENT')throw Error('Unable to load local API configuration');}}
+try{const config=JSON.parse(await fs.readFile(path.join(__dirname,'service.json'),'utf8'));if(config.apiUrl)process.env.BLOCKRADIA_API_URL=config.apiUrl;}catch(error){if(error.code!=='ENOENT')throw Error('Unable to load service configuration');}
 const {GET}=await import(pathToFileURL(path.join(__dirname,'api.mjs')).href);
 const root=path.join(__dirname,'ui-dist');
 server=http.createServer(async(req,res)=>{try{

@@ -4,9 +4,12 @@ import ts from 'typescript';
 import {readFile,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {serviceURL} from '../lib/remote-explorer.ts';
 const root=path.dirname(fileURLToPath(import.meta.url));
+await writeFile(path.join(root,'service.json'),JSON.stringify({apiUrl:process.env.BLOCKRADIA_API_URL?serviceURL(process.env.BLOCKRADIA_API_URL):null}));
 await build({configFile:false,root:path.join(root,'ui'),plugins:[react()],base:'/',build:{outDir:path.join(root,'ui-dist'),emptyOutDir:true}});
 const source=await readFile(path.join(root,'../app/api/explorer/route.ts'),'utf8');
 const result=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}});
-await writeFile(path.join(root,'api.mjs'),result.outputText);
+await writeFile(path.join(root,'api.mjs'),result.outputText.replaceAll('../../../lib/solana-throttle.ts','./solana-throttle.mjs').replaceAll('../../../lib/remote-explorer.ts','./remote-explorer.mjs'));
+for(const name of ['solana-throttle','remote-explorer']){const source=await readFile(path.join(root,'../lib/'+name+'.ts'),'utf8');const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}});await writeFile(path.join(root,name+'.mjs'),compiled.outputText);}
 console.log('Desktop UI and API built.');

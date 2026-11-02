@@ -1,0 +1,6 @@
+export function serviceURL(value:string){const url=new URL(value);if(url.username||url.password||url.search||url.hash||url.pathname!=='/')throw Error('Invalid BlockRadia service URL');if(url.protocol!=='https:'&&!(url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname)))throw Error('BlockRadia service requires HTTPS');return url.origin;}
+export async function remoteExplorer(request:Request,origin:string){
+ const url=new URL('/api/explorer',serviceURL(origin));url.search=new URL(request.url).search;
+ const controller=new AbortController(),cancel=()=>controller.abort(),timer=setTimeout(cancel,67000);request.signal.addEventListener('abort',cancel,{once:true});if(request.signal.aborted)cancel();
+ try{const response=await fetch(url,{signal:controller.signal,redirect:'error',headers:{accept:'application/json'}});const data=await response.json();return Response.json(data,{status:response.status,headers:{'Cache-Control':'no-store',...(response.headers.has('retry-after')?{'Retry-After':response.headers.get('retry-after')!}:{})}});}catch{return Response.json({error:'Общий сервер BlockRadia недоступен. Повторите запрос позже.'},{status:503});}finally{clearTimeout(timer);request.signal.removeEventListener('abort',cancel);}
+}

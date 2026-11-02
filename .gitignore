@@ -2,6 +2,9 @@ node_modules/
 desktop/node_modules/
 desktop/ui-dist/
 desktop/api.mjs
+desktop/solana-throttle.mjs
+desktop/remote-explorer.mjs
+desktop/service.json
 release/
 .env*
 *.pem

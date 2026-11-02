@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: blockradia-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      - key: BLOCKSCOUT_API_KEY
+        sync: false
+      - key: TRUST_PROXY
+        value: "true"
