@@ -18,16 +18,14 @@ Known exchange addresses display their exchange logos in graphs, transaction tab
 
 ## Download
 
-The existing v1.1.2 downloads were published under the former name **Chainlens**. They retain their original filenames and branding; this source rename does not publish a new release.
-
 Choose the package for your operating system. Downloads are hosted in this **private repository**, so you must be signed in to an account with access.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
-| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-Windows-x64.exe) |
-| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-arm64.zip) |
-| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-macOS-x64.zip) |
-| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/latest/download/Chainlens-Linux-x64.tar.gz) |
+| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Windows-x64.exe) |
+| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-arm64.zip) |
+| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-x64.zip) |
+| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Linux-x64.tar.gz) |
 
 [All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
 

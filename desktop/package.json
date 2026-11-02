@@ -17,7 +17,7 @@
     "electron-builder": "26.18.0"
   },
   "build": {
-    "appId": "com.chainlens.explorer",
+    "appId": "com.blockradia.explorer",
     "productName": "BlockRadia",
     "directories": {
       "output": "../release"

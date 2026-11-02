@@ -3,8 +3,10 @@ const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
-// Keep the existing profile so local wallet history and nicknames survive the rename.
-app.setPath('userData',path.join(app.getPath('appData'),'chainlens-desktop'));
+const profile=path.join(app.getPath('appData'),'blockradia-desktop');
+const legacyProfile=path.join(app.getPath('appData'),['chain','lens-desktop'].join(''));
+if(!require('node:fs').existsSync(profile)&&require('node:fs').existsSync(legacyProfile))require('node:fs').cpSync(legacyProfile,profile,{recursive:true});
+app.setPath('userData',profile);
 let window,server;
 const lock=app.requestSingleInstanceLock();
 if(!lock){app.quit()}else{
