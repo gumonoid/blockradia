@@ -32,3 +32,4 @@
 body{font-family:Manrope,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-serif}
 
 .exchange-badge{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;max-width:100%;font-size:11px;font-weight:650;color:var(--ink);line-height:1.4}.exchange-badge img{display:block;object-fit:contain;border-radius:50%;background:#fff;flex-shrink:0;padding:1px}.wallet-identity{display:inline-flex;align-items:center;gap:6px;max-width:100%}.wallet-identity>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-address>.exchange-badge{margin-bottom:4px}.graph-inspector>.exchange-badge{margin:8px 0}.result-hash>.exchange-badge{flex-shrink:0}
+.graph-inspector .exchange-badge{color:#dce5fa}
