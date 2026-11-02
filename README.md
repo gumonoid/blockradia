@@ -14,7 +14,7 @@ BlockRadia helps both professional blockchain researchers and everyday users exp
 
 ---
 
-Known exchange addresses display their exchange logos in graphs, transaction tables, and history. The initial registry covers selected public addresses of Binance, Coinbase, OKX, Kraken, Bybit, and MEXC; [label sources and coverage](docs/EXCHANGE_LABELS.md).
+Known exchange addresses display their exchange logos in graphs, transaction tables, and history. The registry includes 3,077 public address labels across 81 exchange brands and all eight supported networks; [label sources and coverage](docs/EXCHANGE_LABELS.md).
 
 ## Download
 

@@ -1,4 +1,5 @@
-const exchangeBrands={
+import bulk from './exchange-registry.json' with {type:'json'};
+const seedBrands={
   "binance": {
     "name": "Binance",
     "logo": "data:image/jpeg;base64,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",
@@ -31,10 +32,11 @@ const exchangeBrands={
   }
 } as const;
 
-export type ExchangeId=keyof typeof exchangeBrands;
+const exchangeBrands:Record<string,{name:string;logo:string;logoSource:string}>={...bulk.brands,...seedBrands};
+export type ExchangeId=string;
 export type ExchangeAddress={network:string;address:string;exchange:ExchangeId;label:string;source:string;checkedAt:string};
 // Public explorer labels, scoped to an exact address and network. No attribution through counterparties.
-export const exchangeAddresses:ExchangeAddress[]=[
+const seedAddresses:ExchangeAddress[]=[
   {
     "network": "ethereum",
     "address": "0x28c6c06298d514db089934071355e5743bf21d60",
@@ -116,6 +118,8 @@ export const exchangeAddresses:ExchangeAddress[]=[
     "checkedAt": "2026-11-02"
   }
 ];
-const key=(network:string,address:string)=>network+':'+(['ethereum','base','arbitrum','polygon','optimism'].includes(network)?address.toLowerCase():address);
+export const exchangeAddresses:ExchangeAddress[]=[...seedAddresses,...bulk.records];
+function tonKey(address:string){if(/^(0|-1):[0-9a-fA-F]{64}$/.test(address))return address.toLowerCase();try{const b=Uint8Array.from(atob(address.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));if(b.length!==36||(b[0]&128)||![17,81].includes(b[0]))return address;let crc=0;for(const n of b.slice(0,34)){crc^=n<<8;for(let i=0;i<8;i++)crc=(crc&32768)?((crc<<1)^0x1021):crc<<1;crc&=65535;}if(((b[34]<<8)|b[35])!==crc)return address;return (b[1]===255?-1:b[1])+':'+Array.from(b.slice(2,34)).map(x=>x.toString(16).padStart(2,'0')).join('');}catch{return address;}}
+const key=(network:string,address:string)=>network+':'+(['ethereum','base','arbitrum','polygon','optimism'].includes(network)?address.toLowerCase():network==='ton'?tonKey(address):address);
 const index=new Map(exchangeAddresses.map(row=>[key(row.network,row.address),{...row,...exchangeBrands[row.exchange]}]));
 export function getExchangeLabel(network:string,address?:string){return address?index.get(key(network,address)):undefined;}

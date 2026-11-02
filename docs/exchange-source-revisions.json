@@ -1,0 +1,19 @@
+{
+  "importedAt": "2026-11-02",
+  "commits": {
+    "DefiLlama/DefiLlama-Adapters": {
+      "ref": "main",
+      "sha": "114fd94965f791ba4f7f76b462ddc02d72f69ed4"
+    },
+    "dawsbot/eth-labels": {
+      "ref": "v1",
+      "sha": "d9b21aefeded56f7fce7208d6fa173d128526c1b"
+    },
+    "tradezon/cex-list": {
+      "ref": "main",
+      "sha": "6f10790c050821ca6ccf79b341961db41498ad12"
+    }
+  },
+  "binancePoR": "https://www.binance.com/bapi/apex/v1/public/apex/market/por/address",
+  "bybitPoR": "https://api2.bybit.com/common-static/por/bybit_por_202610.csv"
+}

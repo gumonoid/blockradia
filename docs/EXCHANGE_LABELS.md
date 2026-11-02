@@ -1,32 +1,42 @@
 # Exchange address labels
 
-This curated snapshot contains exact, network-specific public explorer labels checked on 2026-11-02. It is a starter registry, not a complete list of exchange wallets. A transfer to or from a labeled wallet never labels the counterparty. Missing labels do not establish that an address is personal. Labels are public attributions, not a guarantee of current control.
+Snapshot checked on 2026-11-02: **3077 exact address/network pairs across 81 exchange brands**, covering all eight supported networks. Counts do not mean that every exchange wallet is known. Private deposit addresses and newly created wallets are often absent from public sources. Historical labels do not guarantee present ownership or continued operation of an exchange.
 
-Local nicknames take precedence over display names. The exchange logo remains separate. The graph inspector links to the underlying source and shows the check date.
+## Coverage
 
-| Network | Address | Label | Source |
-|---|---|---|---|
-| ethereum | `0x28c6c06298d514db089934071355e5743bf21d60` | Binance 14 | [Explorer](https://etherscan.io/address/0x28c6c06298d514db089934071355e5743bf21d60) |
-| ethereum | `0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43` | Coinbase 10 | [Explorer](https://blockscan.com/Address/0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43) |
-| ethereum | `0x98ec059dc3adfbdd63429454aeb0c990fba4a128` | OKX 6 | [Explorer](https://etherscan.io/address/0x98ec059dc3adfbdd63429454aeb0c990fba4a128) |
-| ethereum | `0xe86f8d2a844c1c34d23303b0b6e3a6e93c9d4da5` | Bybit Deposit | [Explorer](https://etherscan.io/address/0xe86f8d2a844c1c34d23303b0b6e3a6e93c9d4da5) |
-| solana | `38xCLm9kSExfGU1GdyVuX4vop7SZns9kU2mQyTmmMdUP` | Binance Cold Wallet | [Explorer](https://solscan.io/account/38xCLm9kSExfGU1GdyVuX4vop7SZns9kU2mQyTmmMdUP) |
-| solana | `3vxheE5C46XzK4XftziRhwAf8QAfipD7HXXWj25mgkom` | Coinbase Prime: Hot Wallet | [Explorer](https://solscan.io/account/3vxheE5C46XzK4XftziRhwAf8QAfipD7HXXWj25mgkom) |
-| solana | `2YxQCXt9spMwoQZiwFLwdjHtscVvXi4nmxCkQCD6Rvgg` | OKX Hot Wallet | [Explorer](https://solscan.io/account/2YxQCXt9spMwoQZiwFLwdjHtscVvXi4nmxCkQCD6Rvgg) |
-| solana | `6LY1JzAFVZsP2a2xKrtU6znQMQ5h4i7tocWdgrkZzkzF` | Kraken Hot Wallet | [Explorer](https://solscan.io/account/6LY1JzAFVZsP2a2xKrtU6znQMQ5h4i7tocWdgrkZzkzF) |
-| tron | `TYJNL3xjpycZsGSvuuZ7zJJ8F2RQHyMQjR` | OKX Hot Wallet 8 | [Explorer](https://tronscan.org/data/analytics/account/portrait/TYJNL3xjpycZsGSvuuZ7zJJ8F2RQHyMQjR) |
+| Network | Address labels |
+|---|---:|
+| arbitrum | 174 |
+| base | 89 |
+| ethereum | 1742 |
+| optimism | 118 |
+| polygon | 155 |
+| solana | 343 |
+| ton | 94 |
+| tron | 362 |
+
+## Sources
+
+- [DefiLlama CEX registry](https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/cex): only explicit `owners` and owner positions in `tokensAndOwners` were extracted. Token arrays, own tokens, arbitrary addresses in comments, and executable code were not imported. Additional static owner configs from KuCoin, Bitget, HTX, and Bitfinex were included.
+- [Binance official PoR address API](https://www.binance.com/bapi/apex/v1/public/apex/market/por/address): only explicitly named supported networks were mapped.
+- [Bybit official October 2026 PoR CSV](https://api2.bybit.com/common-static/por/bybit_por_202610.csv): November was not available at import time. Each asset row maps to its explicitly named chain; aggregate rows are excluded.
+- [tradezon/cex-list](https://github.com/tradezon/cex-list): curated Ethereum exchange addresses; MIT, Ivan Kopeykin.
+- [dawsbot/eth-labels](https://github.com/dawsbot/eth-labels/tree/v1): only `exchange` category account rows with an explicit supported chain ID and matching exchange brand. Token records, exploit/scam tags and charity labels are excluded. MIT, Dawson Botsford; see THIRD_PARTY_NOTICES.md.
+- Original ten curated explorer labels are retained, including the MEXC TRON address supplied by the user ([Tokenview](https://trx.tokenview.io/en/address/TEPSrSYPDSQ7yXpMFPq91Fb1QEWpMkRGfn)).
+
+## Validation and limits
+
+- Exact, network-specific matching; no cross-chain propagation or transaction-based inference.
+- EVM format validated and normalized to lowercase. TRON Base58Check validated. Solana addresses must decode to 32 bytes. TON mainnet raw/friendly forms use CRC16 validation and canonical raw keys; testnet forms are rejected.
+- Duplicate addresses are collapsed. OSL HK and OSL source names are combined under the OSL brand. One remaining conflicting attribution is excluded; malformed records and unmatched non-exchange entities/brands are not silently guessed.
+- The summary JSON records excluded entries. Some old or unrecognized exchange brands remain outside this snapshot.
+- Local nicknames take precedence over display names; exchange attribution remains separate. The inspector shows the source URL and snapshot check date. This date describes import validation, not a promise of real-time ownership verification.
+- Labels and logos are bundled locally. Looking up a wallet adds no attribution API requests. This is a point-in-time snapshot, without automatic updates.
+
+## Exchange brands
+
+TradeOgre, arkham-exchange, biconomy, bigone, binance, binance_us, bingx, bitcointry, bitfinex, bitget, bithumb, bitkan, bitkub, bitlo, bitmex, bitomato, bitstamp, bitunix, bitvavo, bitvenus, blofin_spot, bybit, bydfi, cex, coin8-cex, coinbase, coindcx, coinone, coinsquare, coinstore, coinw, crypto_com, cryptology, deribit, exmo, fastex, flipster, gate, gate_us, gemini, grovex, hashkey, hibt, hotbit, hotcoin_global, huobi, indodax, klever-exchange, korbit, kraken, kucoin, latoken, lbank, levex, maskex, mexc, nbx, nexo-cex, niza-global, nonkyc, okcoin, okx, orangex, osl-exchange, ourbit, p2pb2b, phemex, pionex, poloniex, probit, robinhood, sclite, swissborg, tapbit, toobit, valr, webot, websea, weex, wootrade, zoomex
 
 ## Logos
 
-Original brand images supplied through the CoinGecko public exchange catalog, bundled locally to avoid external image requests. Logos identify their respective owners; no affiliation is implied.
-
-- Binance: https://coin-images.coingecko.com/markets/images/52/small/binance.jpg?1706864274
-- Coinbase: https://coin-images.coingecko.com/markets/images/23/small/Coinbase_Coin_Primary.png?1706864258
-- OKX: https://coin-images.coingecko.com/markets/images/96/small/WeChat_Image_20220117220452.png?1706864283
-- Kraken: https://coin-images.coingecko.com/markets/images/29/small/kraken.jpg?1706864265
-- Bybit: https://coin-images.coingecko.com/markets/images/698/small/bybit_spot.png?1706864649
-
-## Additional TRON address
-
-- MEXC: `TEPSrSYPDSQ7yXpMFPq91Fb1QEWpMkRGfn` — [Tokenview public label](https://trx.tokenview.io/en/address/TEPSrSYPDSQ7yXpMFPq91Fb1QEWpMkRGfn). This is not a Bybit attribution. Checked 2026-11-02.
-- MEXC logo: https://coin-images.coingecko.com/markets/images/409/small/164286be-32a5-4b58-978c-d072eea00eb9.jpeg?1775619316
+Original brand images from the CoinGecko public exchange catalog and DefiLlama icon service are bundled locally. Source URLs remain in `lib/exchange-registry.json`. Logos identify their respective owners; no affiliation is implied.
