@@ -3,6 +3,11 @@ import assert from 'node:assert/strict';
 import {GET} from '../app/api/explorer/route.ts';
 const original=globalThis.fetch;
 const json=value=>Response.json(value);
+test('paid network restriction distinguishes a connected key from a missing key',async()=>{
+ const old=process.env.BLOCKSCOUT_API_KEY;process.env.BLOCKSCOUT_API_KEY='test-key';
+ globalThis.fetch=async(url,init)=>String(url).includes('api.blockscout.com')?new Response('{}',{status:402}):json({result:{number:'0x10',timestamp:'0x64',transactions:[]}});
+ try{const response=await GET(new Request('http://local/api/explorer?network=polygon&action=overview'));const data=await response.json();assert(data.warnings.some(w=>w.includes('тариф Builder')));assert(!data.warnings.some(w=>w.includes('нужен ключ')));}finally{globalThis.fetch=original;if(old===undefined)delete process.env.BLOCKSCOUT_API_KEY;else process.env.BLOCKSCOUT_API_KEY=old;}
+});
 test('restricted indexer loads distinct recent blocks and explains API access',async()=>{
  const heights=[];
  globalThis.fetch=async(url,init)=>{

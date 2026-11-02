@@ -14,6 +14,7 @@ app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore(
 app.whenReady().then(start).catch(error=>{dialog.showErrorBox('BlockRadia — ошибка запуска',String(error));app.quit()});
 }
 async function start(){
+for(const file of [path.join(__dirname,'../.env.local'),path.join(app.getPath('userData'),'.env.local')]){try{process.loadEnvFile(file);}catch(error){if(error.code!=='ENOENT')throw Error('Unable to load local API configuration');}}
 const {GET}=await import(pathToFileURL(path.join(__dirname,'api.mjs')).href);
 const root=path.join(__dirname,'ui-dist');
 server=http.createServer(async(req,res)=>{try{
