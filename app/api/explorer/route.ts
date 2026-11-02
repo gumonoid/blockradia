@@ -1,5 +1,6 @@
 import {createSolanaThrottle} from '../../../lib/solana-throttle.ts';
 import {remoteExplorer} from '../../../lib/remote-explorer.ts';
+import {alchemyAddress,alchemyNetworks} from '../../../lib/alchemy.ts';
 export function GET(request:Request){return process.env.BLOCKRADIA_API_URL?remoteExplorer(request,process.env.BLOCKRADIA_API_URL):localExplorer(request);}
 import {AsyncLocalStorage} from 'node:async_hooks';
 // Internet-only adapters. No synthetic market, balance, or activity data.
@@ -42,7 +43,7 @@ async function market(n:string){const id='coingecko:'+COINS[n];const now=Math.fl
 function activity(transactions:any[]){const dates=transactions.filter(t=>t.timestamp).map(t=>new Date(t.timestamp).getTime()).filter(Number.isFinite);if(!dates.length)return [];const min=Math.min(...dates),max=Math.max(...dates);const step=Math.max(60000,Math.ceil((max-min+1)/12/60000)*60000);const counts=new Map<number,number>();dates.forEach(t=>{const key=Math.floor(t/step)*step;counts.set(key,(counts.get(key)||0)+1)});const begin=Math.floor(min/step)*step,end=Math.floor(max/step)*step;const rows=[];for(let t=begin;t<=end&&rows.length<30;t+=step)rows.push({date:iso(t),transactions_count:counts.get(t)||0});return rows.filter(row=>row.date);}
 const compact=(tx:any)=>({hash:tx.hash,from:tx.from,to:tx.to,value:tx.value,status:tx.status,block_number:tx.block_number,timestamp:tx.timestamp,method:tx.method});
 const evmSnapshots=new Map<string,{stats?:any;statsAt?:number;chart?:any;chartAt?:number}>();
-async function evm(n:string,action:string,q:string){const c=EVM[n],base=c.api+'/api/v2';if(action==='overview'){
+async function evm(n:string,action:string,q:string){const c=EVM[n],base=c.api+'/api/v2';if(alchemyNetworks[n]&&process.env.ALCHEMY_API_KEY){if(action==='address')return alchemyAddress(n,q,process.env.ALCHEMY_API_KEY,read);if(action==='transaction')return evmRPC(n,action,q);if(action==='overview'){const data=await evmRPC(n,action,q);return {...data,warnings:['Обзор показывает последние блоки. Общая статистика сети недоступна; история кошельков загружается через Alchemy.']};}}if(action==='overview'){
 const [stats,tx,chart]=await Promise.allSettled([read(base+'/stats',undefined,{timeoutMs:6500,retries:0}),read(base+'/transactions',undefined,{timeoutMs:6500,retries:0}),read(base+'/stats/charts/transactions',undefined,{timeoutMs:6500,retries:0})]);
 const now=Date.now(),previous=evmSnapshots.get(n)||{},snapshot={...previous};
 if(stats.status==='fulfilled'){snapshot.stats=stats.value;snapshot.statsAt=now;}

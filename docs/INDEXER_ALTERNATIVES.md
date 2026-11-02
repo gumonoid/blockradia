@@ -1,12 +1,12 @@
 # Base and Polygon indexer alternatives
 
-Reviewed on November 2, 2026. Both networks are temporarily commented out of the UI network list. Existing backend adapters and local research records are retained.
+Reviewed on November 2, 2026. Both networks are enabled again with Alchemy for wallet histories. Existing local research records are retained.
 
 ## Alchemy Transfers API
 
 Alchemy explicitly supports historical address transfers on Base and Polygon. Its free tier includes the Transfers API. Access requires an Alchemy account and API key; the existing Blockscout key cannot be used with Alchemy.
 
-This is a candidate for restoring address investigation and transfer graphs, not a replacement for Blockscout's network-wide transaction totals, indexed-address counts, or daily network statistics. It has not been connected or verified with a user API key.
+Alchemy is connected for address investigation and transfer graphs. It does not replace Blockscout's network-wide transaction totals, indexed-address counts, or daily network statistics. The adapter requests up to 50 incoming and 50 outgoing external, internal, and ERC-20 transfers, deduplicates transfer IDs and transaction hashes, and preserves raw token precision. Partial provider failures remain explicitly incomplete.
 
 - [Supported networks and setup](https://www.alchemy.com/docs/reference/transfers-api-quickstart)
 - [Transfer categories and request format](https://www.alchemy.com/docs/data/transfers-api/transfers-endpoints/alchemy-get-asset-transfers)

@@ -12,7 +12,7 @@ The desktop application keeps its loopback API and forwards queries to `https://
 
 No release is created by these steps unless an existing publishing workflow is explicitly run. The version has not been changed.
 
-Free Render services sleep after 15 idle minutes and can take about a minute to wake. Existing client deadlines may end the first request; retry after startup. Free hosting is for preview, not a guarantee of availability for public production use. Provider plans and quotas still apply: sharing the key does not unlock Base or Polygon on the current Blockscout plan. Those networks remain disabled.
+Free Render services sleep after 15 idle minutes and can take about a minute to wake. Existing client deadlines may end the first request; retry after startup. Free hosting is for preview, not a guarantee of availability for public production use. Provider plans and quotas still apply. Base and Polygon wallet histories use `ALCHEMY_API_KEY`, stored only in the server environment; enable both Mainnet endpoints in that Alchemy app. Their overview remains a recent-block sample, without network-wide totals.
 
 ## Run locally
 

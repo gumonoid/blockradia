@@ -17,11 +17,9 @@ const chains=[
   {id:'tron',name:'TRON',symbol:'TRX',icon:'▽',color:'#ef575b',scan:'https://tronscan.org/#',example:'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',dec:6},
   {id:'solana',name:'Solana',symbol:'SOL',icon:'≋',color:'#8d60da',scan:'https://solscan.io',example:'So11111111111111111111111111111111111111112',dec:9},
   {id:'ton',name:'TON',symbol:'TON',icon:'◇',color:'#349ed8',scan:'https://tonviewer.com',example:'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c',dec:9},
-// Temporarily disabled until an alternative indexer is connected.
-// {id:'base',name:'Base',symbol:'ETH',icon:'●',color:'#3478f6',scan:'https://basescan.org',example:'0x4200000000000000000000000000000000000006',dec:18},
+  {id:'base',name:'Base',symbol:'ETH',icon:'●',color:'#3478f6',scan:'https://basescan.org',example:'0x4200000000000000000000000000000000000006',dec:18},
   {id:'arbitrum',name:'Arbitrum',symbol:'ETH',icon:'⬡',color:'#519acd',scan:'https://arbiscan.io',example:'0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',dec:18},
-// Temporarily disabled until an alternative indexer is connected.
-// {id:'polygon',name:'Polygon',symbol:'POL',icon:'∞',color:'#a062e9',scan:'https://polygonscan.com',example:'0x0000000000000000000000000000000000001010',dec:18},
+  {id:'polygon',name:'Polygon',symbol:'POL',icon:'∞',color:'#a062e9',scan:'https://polygonscan.com',example:'0x0000000000000000000000000000000000001010',dec:18},
   {id:'optimism',name:'Optimism',symbol:'ETH',icon:'OP',color:'#ef4d66',scan:'https://optimistic.etherscan.io',example:'0x4200000000000000000000000000000000000006',dec:18},
 ];
 

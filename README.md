@@ -48,7 +48,7 @@ Balance retrieval is independent from transaction-history decoding. The balance 
 
 ## Supported networks
 
-Base and Polygon are temporarily disabled in the application's network selector while an alternative indexer is evaluated. Their adapters and saved research records are retained. The other six networks remain available.
+Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview uses a sample of recent RPC blocks; network-wide transaction totals and indexed-address counts are unavailable from this provider.
 
 | Network | Native asset | Data source | Relationship coverage |
 | :--- | :---: | :--- | :--- |
@@ -56,9 +56,9 @@ Base and Polygon are temporarily disabled in the application's network selector 
 | TRON | TRX | TronGrid | Recent native transfers and TRC-20 transfers |
 | Solana | SOL | Solana Mainnet RPC | Parsed system and supported SPL transfer instructions |
 | TON | TON | TON Center v3 | Recent internal TON messages; friendly and raw Mainnet addresses |
-| Base | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
+| Base | ETH | Alchemy / public RPC | Up to 50 incoming and 50 outgoing native, internal, and ERC-20 transfers |
 | Arbitrum | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
-| Polygon | POL | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
+| Polygon | POL | Alchemy / public RPC | Up to 50 incoming and 50 outgoing native, internal, and ERC-20 transfers |
 | Optimism | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 
 Native-asset prices and price history come independently from **DefiLlama Coins**. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.

@@ -4,6 +4,7 @@ desktop/ui-dist/
 desktop/api.mjs
 desktop/solana-throttle.mjs
 desktop/remote-explorer.mjs
+desktop/alchemy.mjs
 desktop/service.json
 release/
 .env*
