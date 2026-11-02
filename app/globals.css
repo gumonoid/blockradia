@@ -30,3 +30,5 @@
 .metric{background:var(--theme-surface,#fff);color:var(--ink);border-color:var(--line)}.metric>strong{color:var(--ink)}.metric-title,.metric-foot{color:var(--muted)}.metric-title svg{color:var(--purple)}.language-setting select{max-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--theme-surface);color:var(--ink)}
 
 body{font-family:Manrope,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-serif}
+
+.exchange-badge{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;max-width:100%;font-size:11px;font-weight:650;color:var(--ink);line-height:1.4}.exchange-badge img{display:block;object-fit:contain;border-radius:50%;background:#fff;flex-shrink:0;padding:1px}.wallet-identity{display:inline-flex;align-items:center;gap:6px;max-width:100%}.wallet-identity>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.history-address>.exchange-badge{margin-bottom:4px}.graph-inspector>.exchange-badge{margin:8px 0}.result-hash>.exchange-badge{flex-shrink:0}

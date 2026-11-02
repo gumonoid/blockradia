@@ -14,6 +14,8 @@ BlockRadia helps both professional blockchain researchers and everyday users exp
 
 ---
 
+Known exchange addresses display their exchange logos in graphs, transaction tables, and history. The initial registry covers selected public addresses of Binance, Coinbase, OKX, Kraken, and Bybit; [label sources and coverage](docs/EXCHANGE_LABELS.md).
+
 ## Download
 
 The existing v1.1.2 downloads were published under the former name **Chainlens**. They retain their original filenames and branding; this source rename does not publish a new release.

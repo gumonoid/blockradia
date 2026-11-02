@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node desktop/build.mjs",
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs tests/overview.test.mjs",
+    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs tests/overview.test.mjs tests/exchanges.test.mjs",
     "desktop:install": "npm ci --prefix desktop",
     "start": "npm run build && npm --prefix desktop start",
     "dist:win": "npm run build && npm --prefix desktop run package:win",
