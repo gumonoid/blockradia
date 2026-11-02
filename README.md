@@ -48,7 +48,7 @@ Balance retrieval is independent from transaction-history decoding. The balance 
 
 ## Supported networks
 
-Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview combines recent RPC blocks with official BaseScan / PolygonScan CSV exports: network-wide daily transactions, cumulative unique addresses, and a 30-day activity chart. Daily statistics show their UTC date and source; they are not live all-time transaction counters.
+Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview combines recent RPC blocks with growthepie analytics: network-wide daily transactions, daily active addresses, and a 30-day activity chart. Daily statistics show their UTC date and source; they are not all-time transaction or address totals. The current incomplete UTC day is excluded. [growthepie definitions and coverage](https://docs.growthepie.com/).
 
 | Network | Native asset | Data source | Relationship coverage |
 | :--- | :---: | :--- | :--- |
