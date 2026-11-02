@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Pace Solana transaction requests through a shared queue and honor RPC rate-limit cooldowns.
+- Retain decoded transactions in a bounded in-memory cache to reduce repeat requests.
+- Allow additional time for queued Solana transaction lookups while keeping cancellation and deadlines.
+
 ## 1.1.2
 
 - Publish the complete desktop application source in `main`.
