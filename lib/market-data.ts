@@ -1,6 +1,6 @@
 export const MARKET_PERIODS:Record<string,{seconds:number;step:string;stepSeconds:number;candleMs:number;stepLabel:string;candleLabel:string}>={
- '1Ч':{seconds:3600,step:'1m',stepSeconds:60,candleMs:300000,stepLabel:'1 мин',candleLabel:'5 мин'},
- '4Ч':{seconds:14400,step:'1m',stepSeconds:60,candleMs:900000,stepLabel:'1 мин',candleLabel:'15 мин'},
+ '1Ч':{seconds:3600,step:'1m',stepSeconds:60,candleMs:60000,stepLabel:'1 мин',candleLabel:'1 мин'},
+ '4Ч':{seconds:14400,step:'1m',stepSeconds:60,candleMs:300000,stepLabel:'1 мин',candleLabel:'5 мин'},
  '24Ч':{seconds:86400,step:'5m',stepSeconds:300,candleMs:3600000,stepLabel:'5 мин',candleLabel:'1 час'},
  '7Д':{seconds:604800,step:'30m',stepSeconds:1800,candleMs:21600000,stepLabel:'30 мин',candleLabel:'6 часов'},
  '14Д':{seconds:1209600,step:'1h',stepSeconds:3600,candleMs:43200000,stepLabel:'1 час',candleLabel:'12 часов'},

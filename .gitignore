@@ -8,6 +8,7 @@ desktop/alchemy.mjs
 desktop/network-statistics.mjs
 desktop/network-fees.mjs
 desktop/market-data.mjs
+desktop/exchange-candles.mjs
 desktop/service.json
 release/
 .env*

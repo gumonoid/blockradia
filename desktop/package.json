@@ -33,6 +33,7 @@
       "network-statistics.mjs",
       "network-fees.mjs",
       "market-data.mjs",
+      "exchange-candles.mjs",
       "package.json",
       "icon.png",
       "icon.ico"

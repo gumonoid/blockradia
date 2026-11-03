@@ -1,5 +1,6 @@
 export type SeriesPoint={date:string;value:number};
-export type Candle={date:string;open:number;high:number;low:number;close:number;count:number};
+export type Candle={date:string;open:number;high:number;low:number;close:number;count:number;basis?:'trades'|'samples';complete?:boolean};
+export function cleanCandles(rows:Candle[]){return rows.filter(c=>Number.isFinite(Date.parse(c.date))&&[c.open,c.high,c.low,c.close].every(v=>Number.isFinite(v)&&v>=0)&&c.high>=Math.max(c.open,c.close)&&c.low<=Math.min(c.open,c.close)).sort((a,b)=>Date.parse(a.date)-Date.parse(b.date));}
 export function cleanSeries(rows:SeriesPoint[]){return rows.filter(p=>Number.isFinite(Date.parse(p.date))&&Number.isFinite(p.value)&&p.value>=0).sort((a,b)=>Date.parse(a.date)-Date.parse(b.date));}
 export function makeCandles(rows:SeriesPoint[],price:boolean,candleIntervalMs?:number):Candle[]{
  const points=cleanSeries(rows);if(!points.length)return [];

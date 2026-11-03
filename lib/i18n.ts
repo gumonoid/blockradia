@@ -2,6 +2,12 @@
 import {useSyncExternalStore} from 'react';
 export type Language='ru'|'en'|'zh';
 const messages:Record<string,{en:string;zh:string}>={
+  "Биржевые OHLC · Kraken": {en:"Exchange OHLC · Kraken",zh:"交易所OHLC · Kraken"},
+  "Исторические котировки": {en:"Historical prices",zh:"历史价格"},
+  "Реальные котировки": {en:"Live source prices",zh:"真实来源价格"},
+  "сделок": {en:"trades",zh:"笔交易"},
+  "Текущая свеча": {en:"Current candle",zh:"当前蜡烛"},
+  "Биржевые свечи временно недоступны. Показана линия.": {en:"Exchange candles are temporarily unavailable. Showing the line chart.",zh:"交易所蜡烛暂时不可用，显示折线图。"},
   "По доступным котировкам источника": {en:"Based on available source prices",zh:"根据来源可用的价格数据"},
   "1Ч": {en:"1H",zh:"1小时"},
   "4Ч": {en:"4H",zh:"4小时"},

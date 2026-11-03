@@ -62,7 +62,7 @@ Base and Polygon wallet history uses Alchemy through the shared server. End user
 | Polygon | POL | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
 | Optimism | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 
-Native-asset prices and price history come independently from **DefiLlama Coins**. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
+Native-asset prices and history use Kraken USD pairs for the 1H and 4H ranges and **DefiLlama Coins** for longer ranges. All providers are accessed through the shared server without user keys. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
 
 ### What the graph means
 
@@ -85,7 +85,7 @@ Fee definitions: [Ethereum execution API](https://ethereum.github.io/execution-a
 
 The transaction table displays up to 100 recent unique transactions, ten per page. Large transfers are selected from that same sample using the native-currency threshold for each network. Public provider failures or a shorter wallet history can result in fewer rows.
 
-Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D, 30D, 90D, and 1Y. Activity charts use line view only. Price candles aggregate available DefiLlama samples into intervals appropriate to the selected range; they do not represent exchange tick-level OHLC. Hover over a candle to inspect its open, high, low, close, and sample count. The price card and chart display signed change over the selected period, green for growth and red for decline. Native wallet balances include an approximate USD valuation using the current available coin price; missing balances or quotes are never treated as zero.
+Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D, 30D, 90D, and 1Y. The 1H range uses 60 one-minute exchange candles; 4H uses 48 five-minute candles from [Kraken public OHLC](https://docs.kraken.com/api-reference/market-data/get-ohlc-data). The current unfinished candle is identified in its tooltip. Longer ranges aggregate available DefiLlama samples and do not represent exchange tick-level OHLC. Short-range exchange failures fall back to an explicitly labelled line chart. Activity charts use line view only. The price card and chart display signed change over the selected period, green for growth and red for decline. Native wallet balances include an approximate USD valuation using the current available coin price; missing balances or quotes are never treated as zero.
 
 1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
 2. Review the native balance as soon as it arrives; history and graph data follow separately.
