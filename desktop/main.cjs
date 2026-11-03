@@ -1,4 +1,4 @@
-const {app,BrowserWindow,shell,dialog}=require('electron');
+const {app,BrowserWindow,shell,dialog,ipcMain}=require('electron');
 const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
@@ -30,7 +30,11 @@ const ext=path.extname(filename);const mime={'.html':'text/html; charset=utf-8',
 res.writeHead(200,{'Content-Type':mime[ext]||'application/octet-stream','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; frame-src 'none'"});res.end(content);
 }catch(error){res.writeHead(error.code==='ENOENT'?404:500,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Не удалось выполнить запрос'}));}});
 await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(19237,'127.0.0.1',resolve)});
-window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}});
+window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
+const fullscreen=()=>window.isFullScreen()||window.webContents.isHTMLFullScreen();
+ipcMain.handle('fullscreen-state',()=>fullscreen());
+ipcMain.on('exit-fullscreen',event=>{if(event.sender!==window.webContents)return;if(window.webContents.isHTMLFullScreen())window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');window.setFullScreen(false);});
+for(const name of ['enter-full-screen','leave-full-screen','enter-html-full-screen','leave-html-full-screen'])window.on(name,()=>window.webContents.send('fullscreen-state',fullscreen()));
 window.webContents.on('before-input-event',(event,input)=>{
 if(input.type!=='keyDown'||input.isAutoRepeat)return;
 const exitFullscreen=()=>{if(window.webContents.isHTMLFullScreen())window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');if(window.isFullScreen())window.setFullScreen(false);};
