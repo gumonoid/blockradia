@@ -66,9 +66,6 @@ h1{font-size:32px;font-weight:550;letter-spacing:-1.2px;line-height:1.2}
 .segmented{background:var(--theme-soft);border-radius:4px}.segmented button{font-size:10px;color:var(--muted)}.segmented button.active{color:var(--ink);box-shadow:none;background:var(--theme-surface)}
 .chart-mode button{font-size:11px}.chart-mode button.active{color:var(--purple);border-color:var(--purple)}
 .network-panel{background:var(--theme-surface);border:1px solid var(--line);border-radius:6px;padding:24px;display:flex;flex-direction:column}
-.network-orbit{height:70px;justify-content:flex-start;align-items:flex-start}
-.orbit,.orbit-spark,.orbit-point{display:none}
-.hero-coin{transform:none;width:44px;height:44px;border-radius:50%;box-shadow:none;border:1px solid var(--line);background:var(--theme-soft);font-size:32px}
 .network-card-label{font-size:8px;color:var(--muted);letter-spacing:1.2px}.network-panel h2{font-size:22px;font-weight:550;margin:10px 0 23px;letter-spacing:-.5px}
 .network-panel h2 span{font-size:8px;background:var(--theme-soft);color:var(--muted);border-radius:3px}
 .network-facts{font-size:10px;color:var(--muted);margin:10px 0}.network-facts b{font-size:10px;color:var(--ink);font-weight:500}

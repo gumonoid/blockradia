@@ -2,6 +2,7 @@
 import {useSyncExternalStore} from 'react';
 export type Language='ru'|'en'|'zh';
 const messages:Record<string,{en:string;zh:string}>={
+  "Нет переводов выше выбранного порога.": {en:"No transfers above the selected threshold.",zh:"没有超过所选阈值的转账。"},
   "Ожидает подтверждения": {en:"Pending confirmation",zh:"等待确认"},
   "Дата и время": {en:"Date and time",zh:"日期和时间"},
   "Обновлено": {en:"Updated",zh:"更新时间"},
