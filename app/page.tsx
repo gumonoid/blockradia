@@ -13,6 +13,7 @@ import {fetchExplorer} from '../lib/explorer-client';
 import HistoryPanel,{type HistoryEntry} from '../components/explorer/HistoryPanel';
 type Tx={hash:string;from?:{hash:string};to?:{hash:string};value?:string|number;token_amount?:string;token_symbol?:string;timestamp?:string;status?:string;block_number?:number;method?:string};
 const chains=[
+  {id:'bitcoin',name:'Bitcoin',symbol:'BTC',icon:'₿',color:'#f7931a',scan:'https://blockstream.info',example:'1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',dec:8},
   {id:'ethereum',name:'Ethereum',symbol:'ETH',icon:'♦',color:'#7982b6',scan:'https://etherscan.io',example:'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',dec:18},
   {id:'tron',name:'TRON',symbol:'TRX',icon:'▽',color:'#ef575b',scan:'https://tronscan.org/#',example:'TLa2f6VPqDgRE67v1736s7bJ8Ray5wYjU7',dec:6},
   {id:'solana',name:'Solana',symbol:'SOL',icon:'≋',color:'#8d60da',scan:'https://solscan.io',example:'So11111111111111111111111111111111111111112',dec:9},

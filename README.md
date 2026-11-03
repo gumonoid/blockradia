@@ -52,6 +52,7 @@ Base and Polygon wallet history uses Alchemy through the shared server. End user
 
 | Network | Native asset | Data source | Relationship coverage |
 | :--- | :---: | :--- | :--- |
+| Bitcoin | BTC | Blockstream Esplora | Balance, recent confirmed and pending transactions, UTXO outputs; graph attribution limited to single-input-address transactions |
 | Ethereum | ETH | Blockscout / public RPC | Native, ERC-20, and internal transfers when the indexer is available |
 | TRON | TRX | TronGrid | Recent native transfers and TRC-20 transfers |
 | Solana | SOL | Solana Mainnet RPC | Parsed system and supported SPL transfer instructions |
