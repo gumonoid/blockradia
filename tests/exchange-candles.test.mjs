@@ -19,9 +19,9 @@ test('empty Kraken error arrays are accepted by the real API wrapper',async()=>{
  const original=globalThis.fetch;globalThis.fetch=async url=>{const pair=new URL(url).searchParams.get('pair');return Response.json({error:[],result:{[pair]:rows(1,60,Date.now())}});};
  try{const response=await localExplorer(new Request('http://local/api/explorer?network=ethereum&action=market&period='+encodeURIComponent('1Ч')));const data=await response.json();assert.equal(response.status,200);assert.equal(data.source_name,'Kraken');assert.equal(data.ohlc.length,60);}finally{globalThis.fetch=original;}
 });
-for(const [period,wanted] of [['7Д',42],['14Д',84]])test('TON '+period+' has a populated USD history using four-hour exchange candles',async()=>{
- const result=await exchangeMarket('ton',period,async url=>{const u=new URL(url);assert.equal(u.searchParams.get('pair'),'TONUSD');assert.equal(u.searchParams.get('interval'),'240');return {error:[],result:{TONUSD:rows(240,wanted,Date.now())}};});
- assert.equal(result.chart.length,wanted);assert.equal(result.ohlc.length,wanted);assert.equal(result.candle_interval_ms,14400000);assert.equal(result.source_name,'Kraken');
+for(const [period,wanted,interval] of [['24Ч',24,60],['7Д',42,240],['14Д',84,240]])test('TON '+period+' has a populated USD history using exchange candles',async()=>{
+ const result=await exchangeMarket('ton',period,async url=>{const u=new URL(url);assert.equal(u.searchParams.get('pair'),'TONUSD');assert.equal(u.searchParams.get('interval'),String(interval));return {error:[],result:{TONUSD:rows(interval,wanted,Date.now())}};});
+ assert.equal(result.chart.length,wanted);assert.equal(result.ohlc.length,wanted);assert.equal(result.candle_interval_ms,interval*60000);assert.equal(result.source_name,'Kraken');
 });
 test('exchange failure keeps the price and line data, with no artificial short-range candles',async()=>{
  const original=globalThis.fetch;globalThis.fetch=async url=>{if(String(url).includes('kraken.com'))return new Response('{}',{status:503});return Response.json({coins:{'coingecko:solana':String(url).includes('/current/')?{price:100,timestamp:now/1000}:{prices:[{price:90,timestamp:now/1000-3600},{price:100,timestamp:now/1000}]}}});};
