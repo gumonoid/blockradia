@@ -2,6 +2,8 @@
 import {useSyncExternalStore} from 'react';
 export type Language='ru'|'en'|'zh';
 const messages:Record<string,{en:string;zh:string}>={
+  "Дата и время": {en:"Date and time",zh:"日期和时间"},
+  "Обновлено": {en:"Updated",zh:"更新时间"},
   "Светлая": {
     "en": "Light",
     "zh": "浅色"

@@ -22,4 +22,9 @@ test('network stats survive even when both transaction feed and fallback RPC fai
 
 test('unknown ERC20 precision is not guessed as 18 decimals',async()=>{const q='0x'+'4'.repeat(40);globalThis.fetch=async url=>{url=String(url);if(url.endsWith('/addresses/'+q))return json({hash:q,coin_balance:'0'});if(url.includes('token-transfers'))return json({items:[{transaction_hash:'0xdef',from:{hash:q},to:{hash:'0x'+'5'.repeat(40)},total:{value:'1000000'},token:{decimals:null,symbol:'UNKNOWN'}}]});return json({items:[]});};const d=await (await request('base','address',q)).json();assert.deepEqual(d.transfers,[]);assert(d.warnings.some(w=>w.includes('неизвестной точностью')));});
 
+test('explicit refresh replaces cached transaction feed after the shared minimum interval',async()=>{
+ let version=1;const start=realNow()+1000000;Date.now=()=>start;
+ globalThis.fetch=async url=>String(url).endsWith('/blocks')?json([{id:'block',height:version,timestamp:100,tx_count:1}]):json([{txid:'tx'+version,vin:[],vout:[],status:{confirmed:true,block_time:100+version}}]);
+ try{const first=await (await request('bitcoin')).json();assert.equal(first.transactions[0].hash,'tx1');version=2;Date.now=()=>start+6000;const cached=await (await request('bitcoin')).json();assert.equal(cached.transactions[0].hash,'tx1');const fresh=await (await GET(new Request('http://local/api/explorer?network=bitcoin&refresh=1'))).json();assert.equal(fresh.transactions[0].hash,'tx2');}finally{Date.now=realNow;}
+});
 test.after(()=>{globalThis.fetch=original;Date.now=realNow});
