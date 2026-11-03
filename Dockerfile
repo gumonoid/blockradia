@@ -7,6 +7,7 @@ COPY lib/remote-explorer.ts lib/remote-explorer.ts
 COPY lib/alchemy.ts lib/alchemy.ts
 COPY lib/network-statistics.ts lib/network-statistics.ts
 COPY lib/network-fees.ts lib/network-fees.ts
+COPY lib/market-data.ts lib/market-data.ts
 COPY server/ server/
 USER node
 ENV NODE_ENV=production PORT=8080

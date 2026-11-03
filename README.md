@@ -85,7 +85,7 @@ Fee definitions: [Ethereum execution API](https://ethereum.github.io/execution-a
 
 The transaction table displays up to 100 recent unique transactions, ten per page. Large transfers are selected from that same sample using the native-currency threshold for each network. Public provider failures or a shorter wallet history can result in fewer rows.
 
-Price and activity charts offer line and Japanese candlestick views. Daily price candles aggregate DefiLlama samples taken every two hours; they do not represent exchange tick-level OHLC. Activity candles aggregate the source's reported activity samples. Hover over a candle to inspect its open, high, low, close, and sample count.
+Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D, 30D, 90D, and 1Y. Activity charts use line view only. Price candles aggregate available DefiLlama samples into intervals appropriate to the selected range; they do not represent exchange tick-level OHLC. Hover over a candle to inspect its open, high, low, close, and sample count. The price card and chart display signed change over the selected period, green for growth and red for decline. Native wallet balances include an approximate USD valuation using the current available coin price; missing balances or quotes are never treated as zero.
 
 1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
 2. Review the native balance as soon as it arrives; history and graph data follow separately.

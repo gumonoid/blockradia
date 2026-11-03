@@ -32,6 +32,7 @@
       "alchemy.mjs",
       "network-statistics.mjs",
       "network-fees.mjs",
+      "market-data.mjs",
       "package.json",
       "icon.png",
       "icon.ico"
