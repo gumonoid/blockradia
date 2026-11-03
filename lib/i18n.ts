@@ -2,6 +2,20 @@
 import {useSyncExternalStore} from 'react';
 export type Language='ru'|'en'|'zh';
 const messages:Record<string,{en:string;zh:string}>={
+  "Комиссия сети": {en:"Network fee",zh:"网络费用"},
+  "Комиссия, средняя": {en:"Average transaction fee",zh:"平均交易费用"},
+  "Цена газа (оценка)": {en:"Estimated gas price",zh:"预估Gas价格"},
+  "Комиссия, ~30 минут": {en:"Fee, ~30 minutes",zh:"费用，约30分钟"},
+  "Цена Energy": {en:"Energy price",zh:"能量价格"},
+  "Цена Bandwidth": {en:"Bandwidth price",zh:"带宽价格"},
+  "Среднее по последнему блоку. Дополнительная L1-комиссия не включена.": {en:"Last-block average. Additional L1 fee is excluded.",zh:"最新区块平均值，不包括额外L1费用。"},
+  "Среднее по операциям последнего блока.": {en:"Average across transactions in the latest block.",zh:"最新区块交易的平均值。"},
+  "Оценка цены газа от RPC.": {en:"Gas price estimate from RPC.",zh:"来自RPC的Gas价格估算。"},
+  "Оценка ставки для подтверждения примерно за 3 блока.": {en:"Estimated fee rate for confirmation within about 3 blocks.",zh:"约3个区块内确认的预估费率。"},
+  "Тариф сжигания TRX при недостатке ресурсов.": {en:"TRX burn rate when account resources are insufficient.",zh:"账户资源不足时燃烧TRX的费率。"},
+  "Среднее по последним операциям источника.": {en:"Average across the source's latest transactions.",zh:"来源最新交易的平均值。"},
+  "Среднее по последнему блоку, без голосований валидаторов.": {en:"Last-block average, excluding validator votes.",zh:"最新区块平均值，不包括验证者投票。"},
+  "Данные комиссий временно недоступны.": {en:"Fee data is temporarily unavailable.",zh:"费用数据暂时不可用。"},
   "До 100 транзакций с переводами SOL и SPL. Данные появляются по мере загрузки. Анализ может занять несколько минут.": {en:"Up to 100 transactions with SOL and SPL transfers. Results appear as they load. Analysis may take several minutes.",zh:"最多分析100笔包含SOL和SPL转账的交易。数据会逐步显示，分析可能需要几分钟。"},
   "Линия": {en:"Line",zh:"折线"},
   "Японские свечи": {en:"Candlesticks",zh:"日本蜡烛图"},

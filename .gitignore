@@ -6,6 +6,7 @@ desktop/solana-throttle.mjs
 desktop/remote-explorer.mjs
 desktop/alchemy.mjs
 desktop/network-statistics.mjs
+desktop/network-fees.mjs
 desktop/service.json
 release/
 .env*

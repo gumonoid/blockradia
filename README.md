@@ -79,6 +79,10 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 ## Your first investigation
 
+Network fees refresh independently on load, once per minute when automatic updates are enabled, on returning to the tab, and with the refresh button. Each quote shows its source and observation time. EVM networks report the mean observed gas price in the latest block (Gwei), with a labelled RPC estimate for empty blocks; additional L1 fees on rollups are excluded. Bitcoin shows a three-block confirmation fee estimate in sat/vB, TRON shows live Energy and Bandwidth burn tariffs in SUN, and Solana/TON show mean observed transaction fees in their native currency. Failed refreshes retain the previous quote with an unavailable notice and its original timestamp.
+
+Fee definitions: [Ethereum execution API](https://ethereum.github.io/execution-apis/next/api/methods/eth_getBlockByNumber/), [Bitcoin fee estimates](https://github.com/Blockstream/esplora/blob/master/API.md#fee-estimates), [TRON resource prices](https://developers.tron.network/docs/bandwidth-and-energy), [Solana fees](https://solana.com/docs/core/fees), and [TON transaction fields](https://docs.ton.org/api/v3/blockchain-data/get-transactions).
+
 The transaction table displays up to 100 recent unique transactions, ten per page. Large transfers are selected from that same sample using the native-currency threshold for each network. Public provider failures or a shorter wallet history can result in fewer rows.
 
 Price and activity charts offer line and Japanese candlestick views. Daily price candles aggregate DefiLlama samples taken every two hours; they do not represent exchange tick-level OHLC. Activity candles aggregate the source's reported activity samples. Hover over a candle to inspect its open, high, low, close, and sample count.

@@ -31,6 +31,7 @@
       "remote-explorer.mjs",
       "alchemy.mjs",
       "network-statistics.mjs",
+      "network-fees.mjs",
       "package.json",
       "icon.png",
       "icon.ico"
