@@ -31,6 +31,12 @@ res.writeHead(200,{'Content-Type':mime[ext]||'application/octet-stream','X-Conte
 }catch(error){res.writeHead(error.code==='ENOENT'?404:500,{'Content-Type':'application/json'});res.end(JSON.stringify({error:'Не удалось выполнить запрос'}));}});
 await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(19237,'127.0.0.1',resolve)});
 window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{nodeIntegration:false,contextIsolation:true,sandbox:true}});
+window.webContents.on('before-input-event',(event,input)=>{
+if(input.type!=='keyDown'||input.isAutoRepeat)return;
+const exitFullscreen=()=>{if(window.webContents.isHTMLFullScreen())window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');if(window.isFullScreen())window.setFullScreen(false);};
+if(input.key==='Escape'&&(window.isFullScreen()||window.webContents.isHTMLFullScreen())){event.preventDefault();exitFullscreen();}
+else if(input.key==='F11'){event.preventDefault();if(window.isFullScreen()||window.webContents.isHTMLFullScreen())exitFullscreen();else window.setFullScreen(true);}
+});
 window.webContents.setWindowOpenHandler(({url})=>{if(/^https:\/\//i.test(url))shell.openExternal(url);return {action:'deny'}});
 window.webContents.on('will-navigate',(event,url)=>{if(!url.startsWith('http://127.0.0.1:19237/')){event.preventDefault();if(/^https:\/\//i.test(url))shell.openExternal(url)}});
 await window.loadURL('http://127.0.0.1:19237/');
