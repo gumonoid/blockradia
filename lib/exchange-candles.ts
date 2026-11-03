@@ -15,12 +15,14 @@ export function parseExchangeCandles(rows:unknown,intervalMinutes:number,wanted:
  return result;
 }
 export async function exchangeMarket(network:string,period:string,read:Read){
- const pair=pairs[network],interval=period==='1Ч'?1:5,wanted=period==='1Ч'?60:48;
- if(!pair||!['1Ч','4Ч'].includes(period))throw Error('Unsupported exchange period');
+ const windows:Record<string,{interval:number;wanted:number}>={'1Ч':{interval:1,wanted:60},'4Ч':{interval:5,wanted:48},'7Д':{interval:240,wanted:42},'14Д':{interval:240,wanted:84}};
+ const pair=pairs[network],window=windows[period];
+ if(!pair||!window||(['7Д','14Д'].includes(period)&&network!=='ton'))throw Error('Unsupported exchange period');
+ const {interval,wanted}=window;
  const now=Date.now(),since=Math.floor(now/(interval*60000))*interval*60-(wanted-1)*interval*60-1;
  const source='https://api.kraken.com/0/public/OHLC?'+new URLSearchParams({pair,interval:String(interval),since:String(since)});
  const data=await read(source,undefined,{timeoutMs:5000,retries:0});if(data.error?.length)throw Error('Exchange candles unavailable');
  const canonical=pair==='XBTUSD'?'XXBTZUSD':pair==='ETHUSD'?'XETHZUSD':pair;
  const ohlc=parseExchangeCandles(data.result?.[pair]||data.result?.[canonical],interval,wanted,now),first=ohlc[0],last=ohlc.at(-1)!;
- return {period,price:last.close,updated_at:last.date,chart:ohlc.map(c=>({date:c.date,value:c.close})),ohlc,candle_kind:'exchange',candle_interval_ms:interval*60000,change_percent:(last.close/first.open-1)*100,quote_currency:'USD',source,source_url:source,source_name:'Kraken'};
+ return {period,price:last.close,updated_at:new Date(now).toISOString(),chart:ohlc.map(c=>({date:c.date,value:c.close})),ohlc,candle_kind:'exchange',candle_interval_ms:interval*60000,change_percent:(last.close/first.open-1)*100,quote_currency:'USD',source,source_url:source,source_name:'Kraken'};
 }

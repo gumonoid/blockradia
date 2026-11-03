@@ -9,7 +9,8 @@ for(const [network,rule] of Object.entries(largeTransferRules)){
   assert.deepEqual(largeTransfers(network,[{value:String(threshold*2n),token_amount:'999999999999',token_symbol:'USDT'}]),[]);
  });
 }
-test('unknown amounts are excluded and TON has no inferred new threshold',()=>{
+test('unknown amounts are excluded and TON follows its configured threshold',()=>{
  assert.deepEqual(largeTransfers('bitcoin',[{}, {value:'invalid'},{value:-1}]),[]);
- assert.equal(largeTransfers('ton',[{value:'1'}]).length,1);
+ assert.equal(largeTransfers('ton',[{value:'1'},{value:'500000000000'}]).length,0);
+ assert.equal(largeTransfers('ton',[{value:'500000000001'}]).length,1);
 });

@@ -2,6 +2,8 @@
 import {useSyncExternalStore} from 'react';
 export type Language='ru'|'en'|'zh';
 const messages:Record<string,{en:string;zh:string}>={
+  "4 часа": {en:"4 hours",zh:"4小时"},
+  "Биржевая история временно недоступна. Показаны котировки резервного источника.": {en:"Exchange history is temporarily unavailable. Showing prices from the fallback source.",zh:"交易所历史数据暂时不可用，显示备用来源价格。"},
   "Биржевые OHLC · Kraken": {en:"Exchange OHLC · Kraken",zh:"交易所OHLC · Kraken"},
   "Исторические котировки": {en:"Historical prices",zh:"历史价格"},
   "Реальные котировки": {en:"Live source prices",zh:"真实来源价格"},
