@@ -24,7 +24,13 @@ test('unknown ERC20 precision is not guessed as 18 decimals',async()=>{const q='
 
 test('explicit refresh replaces cached transaction feed after the shared minimum interval',async()=>{
  let version=1;const start=realNow()+1000000;Date.now=()=>start;
- globalThis.fetch=async url=>String(url).endsWith('/blocks')?json([{id:'block',height:version,timestamp:100,tx_count:1}]):json([{txid:'tx'+version,vin:[],vout:[],status:{confirmed:true,block_time:100+version}}]);
+ globalThis.fetch=async url=>String(url).endsWith('/mempool/recent')?json([]):String(url).endsWith('/blocks')?json([{id:'block',height:version,timestamp:100,tx_count:1}]):json([{txid:'tx'+version,vin:[],vout:[],status:{confirmed:true,block_time:100+version}}]);
  try{const first=await (await request('bitcoin')).json();assert.equal(first.transactions[0].hash,'tx1');version=2;Date.now=()=>start+6000;const cached=await (await request('bitcoin')).json();assert.equal(cached.transactions[0].hash,'tx1');const fresh=await (await GET(new Request('http://local/api/explorer?network=bitcoin&refresh=1'))).json();assert.equal(fresh.transactions[0].hash,'tx2');}finally{Date.now=realNow;}
+});
+test('Bitcoin pending rows include real sender and recipient without invented confirmation time',async()=>{
+ Date.now=()=>realNow()+2000000;
+ const pending={txid:'pending',vin:[{prevout:{scriptpubkey_address:'sender'}}],vout:[{scriptpubkey_address:'recipient',value:123}],status:{confirmed:false}};
+ globalThis.fetch=async url=>{const path=new URL(url).pathname;if(path.endsWith('/blocks'))return json([{id:'block',height:1,timestamp:100,tx_count:0}]);if(path.endsWith('/mempool/recent'))return json([{txid:'pending',value:123}]);if(path.endsWith('/tx/pending'))return json(pending);return json([]);};
+ try{const d=await (await GET(new Request('http://local/api/explorer?network=bitcoin&refresh=1'))).json();const row=d.transactions[0];assert.equal(row.from.hash,'sender');assert.equal(row.to.hash,'recipient');assert.equal(row.status,'pending');assert.equal(row.timestamp,undefined);assert.equal(row.block_number,undefined);}finally{Date.now=realNow;}
 });
 test.after(()=>{globalThis.fetch=original;Date.now=realNow});
