@@ -15,7 +15,7 @@ test('restricted indexer loads distinct recent blocks and explains API access',a
   const height=JSON.parse(init.body).params[0];heights.push(height);const number=height==='latest'?'0x10':height;
   return json({result:{number,timestamp:'0x64',transactions:[{hash:'hash'+number,from:'0x1',to:'0x2',value:'0x1',input:'0x',blockNumber:number}]}});
  };
- try{const response=await GET(new Request('http://local/api/explorer?network=base&action=overview'));const data=await response.json();assert.equal(response.status,200);assert.deepEqual(heights,['latest','0xf','0xe','0xd']);assert.equal(data.transactions.length,4);assert.equal(data.sample_blocks,4);assert.equal(data.stats.total_transactions,undefined);assert(data.warnings.some(w=>w.includes('ключ Blockscout')));}finally{globalThis.fetch=original;}
+ try{const response=await GET(new Request('http://local/api/explorer?network=base&action=overview'));const data=await response.json();assert.equal(response.status,200);assert.deepEqual(heights,['latest',...Array.from({length:16},(_,i)=>'0x'+(15-i).toString(16))]);assert.equal(data.transactions.length,17);assert.equal(data.sample_blocks,17);assert.equal(data.stats.total_transactions,undefined);assert(data.warnings.some(w=>w.includes('ключ Blockscout')));}finally{globalThis.fetch=original;}
 });
 test('configured API key routes server requests to official API without exposing the key',async()=>{
  const old=process.env.BLOCKSCOUT_API_KEY;process.env.BLOCKSCOUT_API_KEY='private-test-key';const urls=[];

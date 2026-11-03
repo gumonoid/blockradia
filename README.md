@@ -115,7 +115,7 @@ npm start
 
 Set `BLOCKSCOUT_API_KEY` in the environment before launching BlockRadia to use the official multichain Blockscout API. The key stays in the backend and is never included in API responses or the UI bundle. Access depends on your key's network permissions and plan; Base requires a paid tier according to [Blockscout's Base API documentation](https://docs.blockscout.com/base-api).
 
-Without a key, public explorer endpoints are used. Some endpoints restrict automated access. If an indexer refuses access, the overview loads up to four recent blocks through public RPC and labels the activity chart as a sample. Network-wide transaction and address totals remain unavailable rather than being estimated.
+Without a key, public explorer endpoints are used. Some endpoints restrict automated access. If an indexer refuses access, the overview loads up to 48 recent blocks as needed to fill the 100-transaction sample through public RPC and labels the activity chart as a sample. Network-wide transaction and address totals remain unavailable rather than being estimated.
 
 ### Create desktop packages
 
