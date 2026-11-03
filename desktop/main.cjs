@@ -33,6 +33,7 @@ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(1
 window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
 const fullscreen=()=>window.isFullScreen()||window.webContents.isHTMLFullScreen();
 ipcMain.handle('fullscreen-state',()=>fullscreen());
+ipcMain.on('toggle-fullscreen',event=>{if(event.sender!==window.webContents)return;if(window.webContents.isHTMLFullScreen())window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');window.setFullScreen(!fullscreen());});
 ipcMain.on('exit-fullscreen',event=>{if(event.sender!==window.webContents)return;if(window.webContents.isHTMLFullScreen())window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');window.setFullScreen(false);});
 for(const name of ['enter-full-screen','leave-full-screen','enter-html-full-screen','leave-html-full-screen'])window.on(name,()=>window.webContents.send('fullscreen-state',fullscreen()));
 window.webContents.on('before-input-event',(event,input)=>{
