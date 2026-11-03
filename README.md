@@ -57,9 +57,9 @@ Base and Polygon wallet history uses Alchemy through the shared server. End user
 | TRON | TRX | TronGrid | Recent native transfers and TRC-20 transfers |
 | Solana | SOL | Solana Mainnet RPC | Parsed system and supported SPL transfer instructions |
 | TON | TON | TON Center v3 | Recent internal TON messages; friendly and raw Mainnet addresses |
-| Base | ETH | Alchemy / public RPC | Up to 50 incoming and 50 outgoing native, internal, and ERC-20 transfers |
+| Base | ETH | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
 | Arbitrum | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
-| Polygon | POL | Alchemy / public RPC | Up to 50 incoming and 50 outgoing native, internal, and ERC-20 transfers |
+| Polygon | POL | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
 | Optimism | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 
 Native-asset prices and price history come independently from **DefiLlama Coins**. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
@@ -71,13 +71,17 @@ A line represents transfers returned by the selected provider, grouped by direct
 This is a lightweight explorer using public APIs, **not a complete blockchain indexer or an AML attribution database**. Limits and partial failures are shown in the interface:
 
 - EVM indexer responses use the latest available pages. RPC fallback covers a bounded block range and may be restricted by the provider.
-- TRON loads up to 50 recent native operations and 50 token operations. Unknown token precision is not guessed.
-- TON loads up to 50 recent transactions and their TON messages. Jetton decoding is not included.
-- Solana decodes up to six recent signatures per expansion. Unsupported or unavailable details remain explicitly incomplete.
+- TRON loads up to 100 recent native operations and 100 token operations. Unknown token precision is not guessed.
+- TON loads up to 100 recent transactions and their TON messages. Jetton decoding is not included.
+- Solana decodes up to 100 recent signatures progressively in extended wallet analysis. Unsupported or unavailable details remain explicitly incomplete.
 
 **No visible connection does not prove that no transfer exists.**
 
 ## Your first investigation
+
+The transaction table displays up to 100 recent unique transactions, ten per page. Large transfers are selected from that same sample using the native-currency threshold for each network. Public provider failures or a shorter wallet history can result in fewer rows.
+
+Price and activity charts offer line and Japanese candlestick views. Daily price candles aggregate DefiLlama samples taken every two hours; they do not represent exchange tick-level OHLC. Activity candles aggregate the source's reported activity samples. Hover over a candle to inspect its open, high, low, close, and sample count.
 
 1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
 2. Review the native balance as soon as it arrives; history and graph data follow separately.

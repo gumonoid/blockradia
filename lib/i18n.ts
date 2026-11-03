@@ -2,6 +2,13 @@
 import {useSyncExternalStore} from 'react';
 export type Language='ru'|'en'|'zh';
 const messages:Record<string,{en:string;zh:string}>={
+  "До 100 транзакций с переводами SOL и SPL. Данные появляются по мере загрузки. Анализ может занять несколько минут.": {en:"Up to 100 transactions with SOL and SPL transfers. Results appear as they load. Analysis may take several minutes.",zh:"最多分析100笔包含SOL和SPL转账的交易。数据会逐步显示，分析可能需要几分钟。"},
+  "Линия": {en:"Line",zh:"折线"},
+  "Японские свечи": {en:"Candlesticks",zh:"日本蜡烛图"},
+  "Линейный график": {en:"Line chart",zh:"折线图"},
+  "точек": {en:"samples",zh:"个数据点"},
+  "Дневные OHLC по котировкам источника с шагом 2 часа.": {en:"Daily OHLC from source prices sampled every 2 hours.",zh:"根据来源每2小时的价格样本计算的每日OHLC。"},
+  "OHLC по точкам активности источника.": {en:"OHLC calculated from source activity samples.",zh:"根据来源活动数据点计算的OHLC。"},
   "Нет переводов выше выбранного порога.": {en:"No transfers above the selected threshold.",zh:"没有超过所选阈值的转账。"},
   "Ожидает подтверждения": {en:"Pending confirmation",zh:"等待确认"},
   "Дата и время": {en:"Date and time",zh:"日期和时间"},
