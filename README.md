@@ -56,7 +56,7 @@ Base and Polygon wallet history uses Alchemy through the shared server. End user
 | Ethereum | ETH | Blockscout / public RPC | Native, ERC-20, and internal transfers when the indexer is available |
 | TRON | TRX | TronGrid | Recent native transfers and TRC-20 transfers |
 | Solana | SOL | Solana Mainnet RPC | Parsed system and supported SPL transfer instructions |
-| TON | TON | TON Center v3 | Recent internal TON messages; friendly and raw Mainnet addresses |
+| GRAM(TON) | GRAM(TON) | GRAM(TON) Center v3 | Recent internal GRAM(TON) messages; friendly and raw Mainnet addresses |
 | Base | ETH | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
 | Arbitrum | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 | Polygon | POL | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
@@ -72,20 +72,20 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 - EVM indexer responses use the latest available pages. RPC fallback covers a bounded block range and may be restricted by the provider.
 - TRON loads up to 100 recent native operations and 100 token operations. Unknown token precision is not guessed.
-- TON loads up to 100 recent transactions and their TON messages. Jetton decoding is not included.
+- GRAM(TON) loads up to 100 recent transactions and their GRAM(TON) messages. Jetton decoding is not included.
 - Solana decodes up to 100 recent signatures progressively in extended wallet analysis. Unsupported or unavailable details remain explicitly incomplete.
 
 **No visible connection does not prove that no transfer exists.**
 
 ## Your first investigation
 
-Network fees refresh independently on load, once per minute when automatic updates are enabled, on returning to the tab, and with the refresh button. Each quote shows its source and observation time. EVM networks report the mean observed gas price in the latest block (Gwei), with a labelled RPC estimate for empty blocks; additional L1 fees on rollups are excluded. Bitcoin shows a three-block confirmation fee estimate in sat/vB, TRON shows live Energy and Bandwidth burn tariffs in SUN, and Solana/TON show mean observed transaction fees in their native currency. Failed refreshes retain the previous quote with an unavailable notice and its original timestamp.
+Network fees refresh independently on load, once per minute when automatic updates are enabled, on returning to the tab, and with the refresh button. Each quote shows its source and observation time. EVM networks report the mean observed gas price in the latest block (Gwei), with a labelled RPC estimate for empty blocks; additional L1 fees on rollups are excluded. Bitcoin shows a three-block confirmation fee estimate in sat/vB, TRON shows live Energy and Bandwidth burn tariffs in SUN, and Solana/GRAM(TON) show mean observed transaction fees in their native currency. Failed refreshes retain the previous quote with an unavailable notice and its original timestamp.
 
-Fee definitions: [Ethereum execution API](https://ethereum.github.io/execution-apis/next/api/methods/eth_getBlockByNumber/), [Bitcoin fee estimates](https://github.com/Blockstream/esplora/blob/master/API.md#fee-estimates), [TRON resource prices](https://developers.tron.network/docs/bandwidth-and-energy), [Solana fees](https://solana.com/docs/core/fees), and [TON transaction fields](https://docs.ton.org/api/v3/blockchain-data/get-transactions).
+Fee definitions: [Ethereum execution API](https://ethereum.github.io/execution-apis/next/api/methods/eth_getBlockByNumber/), [Bitcoin fee estimates](https://github.com/Blockstream/esplora/blob/master/API.md#fee-estimates), [TRON resource prices](https://developers.tron.network/docs/bandwidth-and-energy), [Solana fees](https://solana.com/docs/core/fees), and [GRAM(TON) transaction fields](https://docs.ton.org/api/v3/blockchain-data/get-transactions).
 
 The transaction table displays up to 100 recent unique transactions, ten per page. Large transfers are selected from that same sample using the native-currency threshold for each network. Public provider failures or a shorter wallet history can result in fewer rows.
 
-Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D, 30D, 90D, and 1Y. The 1H range uses 60 one-minute exchange candles; 4H uses 48 five-minute candles from [Kraken public OHLC](https://docs.kraken.com/api-reference/market-data/get-ohlc-data). The current unfinished candle is identified in its tooltip. Longer ranges aggregate available DefiLlama samples and do not represent exchange tick-level OHLC. Short-range exchange failures fall back to an explicitly labelled line chart. Activity charts use line view only. The price card and chart display signed change over the selected period, green for growth and red for decline. Native wallet balances include an approximate USD valuation using the current available coin price; missing balances or quotes are never treated as zero. TON also uses hourly Kraken USD candles for 24H and four-hour candles for 7D and 14D. Large TON transfers must exceed 500 TON; exactly 500 TON is excluded, and outgoing native messages are included.
+Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D, 30D, 90D, and 1Y. The 1H range uses 60 one-minute exchange candles; 4H uses 48 five-minute candles from [Kraken public OHLC](https://docs.kraken.com/api-reference/market-data/get-ohlc-data). The current unfinished candle is identified in its tooltip. Longer ranges aggregate available DefiLlama samples and do not represent exchange tick-level OHLC. Short-range exchange failures fall back to an explicitly labelled line chart. Activity charts use line view only. The price card and chart display signed change over the selected period, green for growth and red for decline. Native wallet balances include an approximate USD valuation using the current available coin price; missing balances or quotes are never treated as zero. GRAM(TON) also uses hourly Kraken USD candles for 24H and four-hour candles for 7D and 14D. Large GRAM(TON) transfers must exceed 500 GRAM(TON); exactly 500 GRAM(TON) is excluded, and outgoing native messages are included.
 
 1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
 2. Review the native balance as soon as it arrives; history and graph data follow separately.
@@ -141,7 +141,7 @@ npm test
 npm run build
 ```
 
-Tests cover address validation, token amount precision, TON address canonicalization, independent market-data failures, request deadlines, cancellation, shared in-flight requests, and slow Solana history responses.
+Tests cover address validation, token amount precision, GRAM(TON) address canonicalization, independent market-data failures, request deadlines, cancellation, shared in-flight requests, and slow Solana history responses.
 
 ## Source map
 
