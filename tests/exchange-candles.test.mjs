@@ -4,6 +4,11 @@ import {exchangeMarket,parseExchangeCandles} from '../lib/exchange-candles.ts';
 import {localExplorer} from '../app/api/explorer/route.ts';
 const now=Date.UTC(2026,10,3,12,0,30);
 const rows=(minutes,count,clock=now)=>Array.from({length:count},(_,i)=>[Math.floor(clock/(minutes*60000))*minutes*60-(count-1-i)*minutes*60,'100','120','80','110','105','1.5',3]);
+
+for(const network of ['bitcoin','ethereum','solana','tron','ton','base','arbitrum','polygon','optimism'])for(const [period,interval,wanted] of [['24Ч',60,24],['7Д',240,42],['14Д',240,84],['30Д',1440,30],['90Д',1440,90],['1Г',1440,365]])test(network+' '+period+' loads actual Kraken OHLC across the selected period',async()=>{
+ const result=await exchangeMarket(network,period,async url=>{const u=new URL(url);assert.equal(Number(u.searchParams.get('interval')),interval);assert(wanted<=720);return {error:[],result:{[u.searchParams.get('pair')]:rows(interval,wanted,Date.now())}};});
+ assert.equal(result.ohlc.length,wanted);assert.equal(result.chart.length,wanted);assert.equal(result.candle_interval_ms,interval*60000);assert.equal(result.candle_kind,'exchange');assert.equal(result.source_name,'Kraken');assert.equal(Date.parse(result.ohlc.at(-1).date)-Date.parse(result.ohlc[0].date),(wanted-1)*interval*60000);
+});
 test('minute and five-minute candles retain exchange OHLC, trades and current-candle status',()=>{
  for(const [minutes,count] of [[1,60],[5,48]]){const candles=parseExchangeCandles(rows(minutes,count),minutes,count,now);assert.equal(candles.length,count);assert.equal(candles[0].open,100);assert.equal(candles[0].high,120);assert.equal(candles[0].low,80);assert.equal(candles[0].close,110);assert.equal(candles[0].count,3);assert.equal(candles[0].basis,'trades');assert.equal(candles[0].complete,true);assert.equal(candles.at(-1).complete,false);for(let i=1;i<count;i++)assert.equal(Date.parse(candles[i].date)-Date.parse(candles[i-1].date),minutes*60000);}
 });

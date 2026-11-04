@@ -79,7 +79,7 @@ const marketRange=MARKET_PERIODS[period];
 const priceRows=market?.period===period?market.chart||[]:[];
 const shortPeriod=['1Ч','4Ч'].includes(period);
 const exchangeCandles=market?.period===period&&Array.isArray(market.ohlc)?market.ohlc:undefined;
-const canPriceCandles=!shortPeriod||!!exchangeCandles?.length;
+const canPriceCandles=!!exchangeCandles?.length;
 const showPriceCandles=chartMode==='price'&&chartStyle==='candles'&&canPriceCandles;
 const percentChange=market?.period===period&&Number.isFinite(market.change_percent)?market.change_percent:priceChange(priceRows,market?.price);
 const walletBalanceUSD=balanceInUSD(result?.data?.coin_balance,chain.dec,market?.price);
