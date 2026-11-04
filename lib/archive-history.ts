@@ -27,12 +27,12 @@ export async function archiveHistory(network:string,start:number,end:number,addr
    if(results[1].status==='fulfilled'){if(!Array.isArray(results[1].value.data))throw Error('Invalid TRC-20 archive response');for(const tx of results[1].value.data){const decimals=Number(tx.token_info?.decimals);if(tx.token_info?.decimals==null||!Number.isInteger(decimals)||decimals<0||decimals>36||!/^\d+$/.test(tx.value))continue;const value=tx.value.padStart(decimals+1,'0');rows.push({hash:tx.transaction_id,from:{hash:tx.from},to:{hash:tx.to},timestamp:stamp(tx.block_timestamp/1000),token_amount:decimals?value.slice(0,-decimals)+'.'+value.slice(-decimals):value,token_symbol:tx.token_info.symbol,status:'ok',method:'TRC20 Transfer'})}}
    const partial=results.some(r=>r.status==='rejected');return done(rows,base,'TronGrid archive',partial,partial?['Some TRON archive sources did not respond.']:[]);
   }
-  const latest=await d.tronNode('/wallet/getnowblock',{}),tip=latest.block_header.raw_data.number,cache=new Map<number,any>([[tip,latest]]);
-  const block=async(height:number)=>{if(!cache.has(height))cache.set(height,await d.tronNode('/wallet/getblockbynum',{num:height}));return cache.get(height)};
+  const latest=await d.tronNode('/wallet/getnowblock',{}),tip=latest.block_header.raw_data.number,cache=new Map<number,any>([[tip,latest]]);let source=latest._source||'https://api.trongrid.io';
+  const block=async(height:number)=>{if(!cache.has(height))cache.set(height,await d.tronNode('/wallet/getblockbynum',{num:height}));const data=cache.get(height);if(data._source)source=data._source;return data};
   let height=await blockAtTime(tip,to,async n=>(await block(n)).block_header.raw_data.timestamp/1000);const rows:any[]=[];
   for(let count=0;height>=0&&count<128&&rows.length<100;count++,height--){const b=await block(height),time=b.block_header.raw_data.timestamp/1000;if(time<from)break;rows.push(...await Promise.all((b.transactions||[]).map((tx:any)=>d.tronTx(tx,b))));if(Date.now()-began>50000)break;}
   const partial=height>=0&&rows.length<100&&(await block(height)).block_header.raw_data.timestamp/1000>=from;
-  return done(rows,'https://tron-rpc.publicnode.com','TRON block archive',partial);
+  return done(rows,source,'TRON block archive',partial);
  }
  const evm=d.evm[network];
  if(evm){
