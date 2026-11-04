@@ -2,8 +2,9 @@ type Read=(url:string,body?:unknown,options?:{timeoutMs?:number;retries?:number}
 type Dependencies={read:Read;evm:Record<string,{rpc:string;api:string;symbol:string}>;alchemy:(network:string,address:string,from:number,to:number)=>Promise<any>;tronNode:(path:string,body:any)=>Promise<any>;tronTx:(tx:any,block?:any)=>Promise<any>;tonRaw:(address:string)=>string;tonBundle:(data:any)=>any};
 const stamp=(seconds:number)=>new Date(seconds*1000).toISOString();
 export async function blockAtTime(tip:number,target:number,getTime:(height:number)=>Promise<number>):Promise<number>{
- let lo=0,hi=tip,result=-1;
- while(lo<=hi){const mid=Math.floor((lo+hi)/2),time=await getTime(mid);if(!Number.isFinite(time))throw Error('Archive returned an invalid block timestamp');if(time<=target){result=mid;lo=mid+1}else hi=mid-1;}
+ let lo=0,hi=tip,result=-1,archiveFloor=0;
+ while(lo<=hi){const mid=Math.floor((lo+hi)/2);let time:number;try{time=await getTime(mid)}catch(e){const match=String((e as Error).message).match(/earliest(?: available)?(?: block)?(?: is)?[^\d]{0,12}(\d+)/i);const floor=match?Number(match[1]):NaN;if(Number.isSafeInteger(floor)&&floor>mid&&floor<=tip){archiveFloor=Math.max(archiveFloor,floor);lo=floor;continue;}throw e;}if(!Number.isFinite(time))throw Error('Archive returned an invalid block timestamp');if(time<=target){result=mid;lo=mid+1}else hi=mid-1;}
+ if(result<0&&archiveFloor>0)throw Error('The selected dates precede the earliest block retained by this archive.');
  return result;
 }
 export async function archiveHistory(network:string,start:number,end:number,address:string,d:Dependencies){
@@ -36,8 +37,10 @@ export async function archiveHistory(network:string,start:number,end:number,addr
  const evm=d.evm[network];
  if(evm){
   const backups:Record<string,string>={arbitrum:'https://arbitrum-one-rpc.publicnode.com',base:'https://base-rpc.publicnode.com',optimism:'https://optimism-rpc.publicnode.com'};
-  let endpoint=network==='arbitrum'?backups.arbitrum:evm.rpc;
-  const rpc=async(method:string,params:any[])=>{let error:unknown;for(const url of [...new Set([endpoint,evm.rpc,backups[network]].filter(Boolean))]){try{const response=await d.read(url,{jsonrpc:'2.0',id:1,method,params},{timeoutMs:4500,retries:0});if(response.result==null)throw Error('EVM archive returned no data');endpoint=url;return response.result}catch(e){error=e}}throw error};
+  const chains:Record<string,string>={ethereum:'eth-mainnet',base:'base-mainnet',polygon:'polygon-mainnet',arbitrum:'arb-mainnet',optimism:'opt-mainnet'};
+  const alchemyRPC=process.env.ALCHEMY_API_KEY?'https://'+chains[network]+'.g.alchemy.com/v2/'+encodeURIComponent(process.env.ALCHEMY_API_KEY):'';
+  let endpoint=alchemyRPC||(network==='arbitrum'?backups.arbitrum:evm.rpc);const blocked=new Set<string>();
+  const rpc=async(method:string,params:any[])=>{let error:unknown;for(const url of [...new Set([endpoint,alchemyRPC,evm.rpc,backups[network]].filter(Boolean))].filter(url=>!blocked.has(url))){try{const response=await d.read(url,{jsonrpc:'2.0',id:1,method,params},{timeoutMs:4500,retries:0});if(response.result==null)throw Error('EVM archive returned no data');endpoint=url;return response.result}catch(e){error=e;if(/HTTP (401|403|429)/.test(String((e as Error).message)))blocked.add(url)}}throw error||Error('Archive RPC endpoints are unavailable')};
   const tip=parseInt(await rpc('eth_blockNumber',[]),16),cache=new Map<number,any>();
   const block=async(height:number,full=false)=>{const old=cache.get(height);if(old&&(!full||!old.transactions.length||typeof old.transactions[0]==='object'))return old;const value=await rpc('eth_getBlockByNumber',['0x'+height.toString(16),full]);cache.set(height,value);return value};
   const time=async(height:number)=>parseInt((await block(height)).timestamp,16);
@@ -53,8 +56,8 @@ export async function archiveHistory(network:string,start:number,end:number,addr
    for(const b of blocks){const seconds=parseInt(b.timestamp,16);if(seconds<from){reached=true;continue;}for(const tx of b.transactions||[]){if(address&&tx.from?.toLowerCase()!==address.toLowerCase()&&tx.to?.toLowerCase()!==address.toLowerCase())continue;rows.push({hash:tx.hash,from:{hash:tx.from},to:{hash:tx.to},value:BigInt(tx.value||'0x0').toString(),block_number:parseInt(b.number,16),timestamp:stamp(seconds),status:'confirmed',method:tx.input==='0x'?'Transfer':'Contract call'});}}
    if(reached){height=-1;break;}if(Date.now()-began>50000)break;
   }
-  const partial=rows.length<100&&height>=first;
-  return done(rows,endpoint,'EVM block archive',partial,address?['RPC address history covers direct transactions; token-only and internal transfers require the indexer.']:[]);
+  const partial=!!address||rows.length<100&&height>=first;
+  return done(rows,endpoint.includes('.g.alchemy.com')?'https://www.alchemy.com':endpoint,'EVM block archive',partial,address?['RPC address history covers direct transactions; token-only and internal transfers require the indexer.']:[]);
  }
  if(network==='solana')return solanaArchive(start,end,address,d.read,began);
  throw Error('Unknown archive network');
@@ -67,14 +70,15 @@ export function solanaArchiveTransaction(tx:any,slot:number,seconds:number,walle
  return {hash:tx.transaction?.signatures?.[0],block_number:slot,timestamp:stamp(seconds),status:tx.meta?.err?'error':'ok',method:'Solana transaction',...(native.length?{from:{hash:first.source},to:{hash:first.destination},value:native.reduce((sum:bigint,i:any)=>sum+BigInt(i.parsed.info.lamports||0),0n).toString()}:{})};
 }
 async function solanaArchive(start:number,end:number,address:string,read:Read,began:number){
- let source='https://solana-rpc.publicnode.com';
- const rpc=async(method:string,params:any[])=>{let error:unknown;for(const endpoint of [source,'https://api.mainnet-beta.solana.com'].filter((s,i,a)=>a.indexOf(s)===i)){try{const response=await read(endpoint,{jsonrpc:'2.0',id:1,method,params},{timeoutMs:5000,retries:0});if(response.result==null)throw Error('Solana archive returned no data');source=endpoint;return response.result}catch(e){error=e}}throw error};
+ const alchemyRPC=process.env.ALCHEMY_API_KEY?'https://solana-mainnet.g.alchemy.com/v2/'+encodeURIComponent(process.env.ALCHEMY_API_KEY):'';
+ let source=alchemyRPC||'https://solana-rpc.publicnode.com';const blocked=new Set<string>();
+ const rpc=async(method:string,params:any[])=>{let error:unknown;for(const endpoint of [...new Set([source,alchemyRPC,'https://solana-rpc.publicnode.com','https://solana.publicnode.com','https://api.mainnet-beta.solana.com','https://solana.api.onfinality.io/public'].filter(Boolean))].filter(url=>!blocked.has(url))){try{const response=await read(endpoint,{jsonrpc:'2.0',id:1,method,params},{timeoutMs:5000,retries:0});if(response.result==null)throw Error('Solana archive returned no data');source=endpoint;return response.result}catch(e){error=e;if(/HTTP (401|403|429)|Too Many Requests/.test(String((e as Error).message)))blocked.add(endpoint)}}throw error||Error('Solana archive RPC endpoints are unavailable')};
  const from=start/1000,to=end/1000,tip=await rpc('getSlot',[{commitment:'finalized'}]);
  const times=new Map<number,{slot:number;time:number}>();
  const time=async(slot:number)=>{if(times.has(slot))return times.get(slot)!;try{const t=await rpc('getBlockTime',[slot]);const row={slot,time:Number(t)};times.set(slot,row);return row}catch{const slots=await rpc('getBlocks',[slot,Math.min(tip,slot+100),{commitment:'finalized'}]);if(!slots.length)throw Error('Historical Solana slots are unavailable');const row={slot:slots[0],time:Number(await rpc('getBlockTime',[slots[0]]))};times.set(slot,row);return row}};
  let lo=0,hi=tip,last=-1;
  while(lo<=hi){const mid=Math.floor((lo+hi)/2),row=await time(mid);if(!Number.isFinite(row.time))throw Error('Invalid Solana block time');if(row.time<=to){last=row.slot;lo=Math.max(mid+1,row.slot+1)}else hi=mid-1;}
- const result=(rows:any[],partial=false,warnings:string[]=[])=>({transactions:rows.filter(t=>Date.parse(t.timestamp)>=start&&Date.parse(t.timestamp)<=end).sort((a,b)=>b.block_number-a.block_number).slice(0,100),source,source_name:'Solana RPC archive',partial_history:partial,warnings,range:{start,end},fetched_at:new Date().toISOString()});
+ const result=(rows:any[],partial=false,warnings:string[]=[])=>({transactions:rows.filter(t=>Date.parse(t.timestamp)>=start&&Date.parse(t.timestamp)<=end).sort((a,b)=>b.block_number-a.block_number).slice(0,100),source:source.includes('.g.alchemy.com')?'https://www.alchemy.com':source,source_name:'Solana RPC archive',partial_history:partial,warnings,range:{start,end},fetched_at:new Date().toISOString()});
  if(last<0)return result([]);
  const getBlock=(slot:number,details='full')=>rpc('getBlock',[slot,{encoding:'jsonParsed',transactionDetails:details,rewards:false,maxSupportedTransactionVersion:1,commitment:'finalized'}]);
  if(address){
