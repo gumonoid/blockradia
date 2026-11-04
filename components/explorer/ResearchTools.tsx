@@ -4,7 +4,7 @@ import {fetchExplorer} from '../../lib/explorer-client';
 export function useWords(){const {language}=useI18n();return (en:string,ru:string,zh:string)=>language==='ru'?ru:language==='zh'?zh:en;}
 export type TableFilters={text:string;status:string;from:string;to:string;direction:string;minimum:string;asset:string;hidden:number[]};
 export const defaultFilters:TableFilters={text:'',status:'all',from:'',to:'',direction:'all',minimum:'',asset:'',hidden:[]};
-export function TableTools({value,onChange,rows=[]}:{value:TableFilters;onChange:(v:TableFilters)=>void;rows?:{timestamp?:string;status?:string}[]}){
+export function TableTools({value,onChange,rows=[],remoteDates=false}:{value:TableFilters;onChange:(v:TableFilters)=>void;rows?:{timestamp?:string;status?:string}[];remoteDates?:boolean}){
  const w=useWords(),set=(key:keyof TableFilters,v:any)=>onChange({...value,[key]:v});
  const dates=rows.map(row=>Date.parse(row.timestamp||'')).filter(Number.isFinite).sort((a,b)=>a-b);
  const range=dates.length?new Date(dates[0]).toLocaleDateString()+' — '+new Date(dates.at(-1)!).toLocaleDateString():null;
@@ -17,7 +17,7 @@ export function TableTools({value,onChange,rows=[]}:{value:TableFilters;onChange
  <label>{w('Asset','Монета','币种')}<input value={value.asset} onChange={e=>set('asset',e.target.value)} placeholder="BTC, ETH, USDT…"/></label><label>{w('Minimum amount','Минимальная сумма','最低金额')}<input type="number" min="0" step="any" value={value.minimum} onChange={e=>set('minimum',e.target.value)}/></label>
  <details><summary>{w('Columns','Столбцы','列')}</summary>{labels.map((label,i)=><label key={i}><input type="checkbox" checked={!value.hidden.includes(i)} onChange={()=>set('hidden',value.hidden.includes(i)?value.hidden.filter(n=>n!==i):value.hidden.length<7?[...value.hidden,i]:value.hidden)}/>{label}</label>)}</details><button onClick={()=>onChange(defaultFilters)}>{w('Reset filters','Сбросить фильтры','重置筛选')}</button>
  <small>{w('Filters apply to the loaded sample. Times use your computer’s time zone.','Фильтры применяются к загруженной выборке. Время — в часовом поясе компьютера.','筛选适用于已加载样本。时间使用电脑时区。')} {range&&<strong>{w('Loaded dates: ','Даты загруженных операций: ','已加载日期：')}{range}</strong>}</small>
- {outside?<p className="sample-filter-warning" role="status">{w('The selected dates are outside this sample. This filter does not load older blockchain history. Reset the dates to see the loaded transactions.','Выбранные даты вне загруженной выборки. Фильтр не загружает архив блокчейна. Сбросьте даты, чтобы увидеть загруженные операции.','所选日期超出样本范围。此筛选不会加载区块链历史，请重置日期查看已加载交易。')}</p>:null}
+ {outside&&!remoteDates?<p className="sample-filter-warning" role="status">{w('The selected dates are outside this sample. This filter does not load older blockchain history. Reset the dates to see the loaded transactions.','Выбранные даты вне загруженной выборки. Фильтр не загружает архив блокчейна. Сбросьте даты, чтобы увидеть загруженные операции.','所选日期超出样本范围。此筛选不会加载区块链历史，请重置日期查看已加载交易。')}</p>:null}
  {(value.from||value.to)&&rows.some(row=>!row.timestamp)&&<small>{w('Operations without a known date are excluded by the date filter.','Операции без известной даты исключены фильтром дат.','日期未知的交易会被日期筛选排除。')}</small>}</div>;
 }
 type Watch={network:string;address:string;seen:string[];ready:boolean};

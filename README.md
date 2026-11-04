@@ -18,6 +18,8 @@ Known exchange addresses display their exchange logos in graphs, transaction tab
 
 The transaction table includes Confirmed and Pending tabs, address/hash/nickname/exchange search, date bounds, incoming/outgoing direction for an opened wallet, asset and minimum-amount filters. Filters apply to the loaded sample. Column visibility is saved locally. Dates display the computer's time zone.
 
+Selecting dates on Bitcoin loads up to 100 confirmed transactions from the blockchain for the selected local-calendar period, including historical dates. The network overview locates historical blocks by timestamp; an opened Bitcoin wallet scans its address history (up to 80 pages, with an explicit partial-result notice if that limit is reached). Refresh reloads the selected period. Other networks currently filter their loaded sample by date.
+
 Address alerts support up to ten watched wallets while the app is open. The first successful check establishes a baseline; later checks run roughly once per minute and report newly observed transaction hashes. OS notifications require notification permission; the in-app event list remains available. Checks use each provider's available recent sample and may be delayed or incomplete during rate limits or network failures.
 
 The graph's Saved investigations section stores named local snapshots with notes, node positions, zoom, transfers and nicknames. Open restores the saved snapshot, including its network and root address; JSON exports provide a portable backup. Up to thirty snapshots are retained, subject to local storage capacity. Search history also supports network, record-type and date filters.
