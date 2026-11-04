@@ -1,6 +1,7 @@
 
 'use client';
 import './globals.css';
+import {csvCell} from '../lib/csv';
 import './workspace.css';
 import {useI18n,t as translate,getLocale} from '../lib/i18n';
 import {useEffect,useRef,useState} from 'react';
@@ -103,7 +104,7 @@ const percentChange=market?.period===period&&Number.isFinite(market.change_perce
 const walletBalanceUSD=balanceInUSD(result?.data?.coin_balance,chain.dec,market?.price);
 const chartRows=(chartMode==='price'?priceRows:overview?.chart||[]).slice().sort((a:any,b:any)=>a.date.localeCompare(b.date));
 const chart:number[]=chartRows.map((d:any)=>Number(chartMode==='price'?d.value:d.transactions_count??d.tx_count)).filter(Number.isFinite);
-function exportCSV(){if(!visibleTransactions.length){setNotice('Нет транзакций для экспорта');return}const csv='\uFEFFhash,from,to,value,token_amount,token_symbol,block,status,timestamp\n'+visibleTransactions.map(t=>[t.hash,t.from?.hash||'',t.to?.hash||'',t.value??'',t.token_amount||'',t.token_symbol||'',t.block_number||'',t.status||'',t.timestamp||''].map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`blockradia-${network}.csv`;a.click();URL.revokeObjectURL(url)}
+function exportCSV(){if(!visibleTransactions.length){setNotice('Нет транзакций для экспорта');return}const csv='\uFEFFhash,from,to,value,token_amount,token_symbol,block,status,timestamp\n'+visibleTransactions.map(t=>[t.hash,t.from?.hash||'',t.to?.hash||'',t.value??'',t.token_amount||'',t.token_symbol||'',t.block_number||'',t.status||'',t.timestamp||''].map(csvCell).join(',')).join('\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`blockradia-${network}.csv`;a.click();URL.revokeObjectURL(url)}
 
 const warnings=[...(result?.warnings||overview?.warnings||[]).filter((w:string)=>!(network==='solana'&&result&&w.startsWith('Расшифровано '))),...(marketError?[marketError]:[]),...(market?.warning?[market.warning]:[])];
 return <div className="app-shell" onClick={event=>{const link=(event.target as HTMLElement).closest?.('a');if(!link||network!=='ton')return;const url=new URL(link.href);if(url.hostname!=='tonviewer.com')return;const parts=url.pathname.split('/').filter(Boolean);if(!parts.length)return;const kind=parts[0]==='transaction'?'transaction':'address';const address=decodeURIComponent(kind==='transaction'?parts[1]||'':parts[0]);if(!address)return;event.preventDefault();setQuery(address);search(address,kind);}}>

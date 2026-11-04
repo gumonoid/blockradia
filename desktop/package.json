@@ -4,6 +4,9 @@
   "description": "BlockRadia multichain desktop explorer",
   "author": "BlockRadia",
   "private": true,
+  "overrides": {
+    "minimatch@>=7 <11.0.1": "11.0.4"
+  },
   "main": "main.cjs",
   "scripts": {
     "start": "node node_modules/electron/install.js && electron .",
@@ -24,6 +27,7 @@
     },
     "files": [
       "main.cjs",
+      "security.cjs",
       "preload.cjs",
       "service.json",
       "ui-dist/**/*",
@@ -89,5 +93,8 @@
       "sign": false
     },
     "publish": null
+  },
+  "dependencies": {
+    "blockradia": "file:.."
   }
 }
