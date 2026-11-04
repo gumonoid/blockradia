@@ -28,6 +28,7 @@
       "service.json",
       "ui-dist/**/*",
       "api.mjs",
+      "archive-history.mjs",
       "solana-throttle.mjs",
       "remote-explorer.mjs",
       "alchemy.mjs",

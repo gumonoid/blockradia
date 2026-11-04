@@ -20,3 +20,5 @@ release/
 Thumbs.db
 *.log
 work/
+
+desktop/archive-history.mjs

@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node --experimental-strip-types desktop/build.mjs",
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs tests/overview.test.mjs tests/exchanges.test.mjs tests/tron.test.mjs tests/solana-recovery.test.mjs tests/solana-throttle.test.mjs tests/evm-access.test.mjs tests/gateway.test.mjs tests/alchemy.test.mjs tests/network-statistics.test.mjs tests/large-transfers.test.mjs tests/chart-sample.test.mjs tests/network-fees.test.mjs tests/market-data.test.mjs tests/exchange-candles.test.mjs tests/ton-threshold.test.mjs tests/wallet-address.test.mjs tests/table-filters.test.mjs tests/bitcoin-dates.test.mjs",
+    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs tests/overview.test.mjs tests/exchanges.test.mjs tests/tron.test.mjs tests/solana-recovery.test.mjs tests/solana-throttle.test.mjs tests/evm-access.test.mjs tests/gateway.test.mjs tests/alchemy.test.mjs tests/network-statistics.test.mjs tests/large-transfers.test.mjs tests/chart-sample.test.mjs tests/network-fees.test.mjs tests/market-data.test.mjs tests/exchange-candles.test.mjs tests/ton-threshold.test.mjs tests/wallet-address.test.mjs tests/table-filters.test.mjs tests/bitcoin-dates.test.mjs tests/archive-history.test.mjs",
     "server:start": "node --experimental-strip-types server/start.mjs",
     "desktop:install": "npm ci --prefix desktop",
     "start": "npm run build && npm --prefix desktop start",
