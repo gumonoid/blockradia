@@ -16,6 +16,12 @@ BlockRadia helps both professional blockchain researchers and everyday users exp
 
 Known exchange addresses display their exchange logos in graphs, transaction tables, and history. The registry includes 3,077 public address labels across 81 exchange brands and all eight supported networks; [label sources and coverage](docs/EXCHANGE_LABELS.md).
 
+The transaction table includes Confirmed and Pending tabs, address/hash/nickname/exchange search, date bounds, incoming/outgoing direction for an opened wallet, asset and minimum-amount filters. Filters apply to the loaded sample. Column visibility is saved locally. Dates display the computer's time zone.
+
+Address alerts support up to ten watched wallets while the app is open. The first successful check establishes a baseline; later checks run roughly once per minute and report newly observed transaction hashes. OS notifications require notification permission; the in-app event list remains available. Checks use each provider's available recent sample and may be delayed or incomplete during rate limits or network failures.
+
+The graph's Saved investigations section stores named local snapshots with notes, node positions, zoom, transfers and nicknames. Open restores the saved snapshot, including its network and root address; JSON exports provide a portable backup. Up to thirty snapshots are retained, subject to local storage capacity. Search history also supports network, record-type and date filters.
+
 ## Download
 
 Choose the package for your operating system. Downloads are hosted in this **private repository**, so you must be signed in to an account with access.
