@@ -4,8 +4,11 @@ import {fetchExplorer} from '../../lib/explorer-client';
 export function useWords(){const {language}=useI18n();return (en:string,ru:string,zh:string)=>language==='ru'?ru:language==='zh'?zh:en;}
 export type TableFilters={text:string;status:string;from:string;to:string;direction:string;minimum:string;asset:string;hidden:number[]};
 export const defaultFilters:TableFilters={text:'',status:'all',from:'',to:'',direction:'all',minimum:'',asset:'',hidden:[]};
-export function TableTools({value,onChange}:{value:TableFilters;onChange:(v:TableFilters)=>void}){
+export function TableTools({value,onChange,rows=[]}:{value:TableFilters;onChange:(v:TableFilters)=>void;rows?:{timestamp?:string;status?:string}[]}){
  const w=useWords(),set=(key:keyof TableFilters,v:any)=>onChange({...value,[key]:v});
+ const dates=rows.map(row=>Date.parse(row.timestamp||'')).filter(Number.isFinite).sort((a,b)=>a-b);
+ const range=dates.length?new Date(dates[0]).toLocaleDateString()+' — '+new Date(dates.at(-1)!).toLocaleDateString():null;
+ const outside=dates.length&&((value.to&&new Date(value.to+'T23:59:59.999').getTime()<dates[0])||(value.from&&new Date(value.from+'T00:00:00').getTime()>dates.at(-1)!));
  const labels=[w('Hash','Хеш','哈希'),w('Date / time','Дата и время','时间'),w('Method','Метод','方法'),w('Block','Блок','区块'),w('Sender','Отправитель','发送方'),w('Recipient','Получатель','接收方'),w('Amount','Сумма','金额'),w('Status','Статус','状态')];
  return <div className="research-tools"><div className="research-tabs">{[['all',w('All','Все','全部')],['confirmed',w('Confirmed','Подтверждённые','已确认')],['pending',w('Pending','Ожидающие','待确认')]].map(([id,label])=><button key={id} aria-pressed={value.status===id} onClick={()=>set('status',id)}>{label}</button>)}</div>
  <label>{w('Search table','Поиск в таблице','搜索表格')}<input value={value.text} onChange={e=>set('text',e.target.value)} placeholder={w('Address, hash, nickname, exchange','Адрес, хеш, никнейм, биржа','地址、哈希、昵称、交易所')}/></label>
@@ -13,7 +16,9 @@ export function TableTools({value,onChange}:{value:TableFilters;onChange:(v:Tabl
  <label>{w('Direction (wallet)','Направление (кошелёк)','方向（钱包）')}<select value={value.direction} onChange={e=>set('direction',e.target.value)}><option value="all">{w('All','Все','全部')}</option><option value="in">{w('Incoming','Входящие','转入')}</option><option value="out">{w('Outgoing','Исходящие','转出')}</option></select></label>
  <label>{w('Asset','Монета','币种')}<input value={value.asset} onChange={e=>set('asset',e.target.value)} placeholder="BTC, ETH, USDT…"/></label><label>{w('Minimum amount','Минимальная сумма','最低金额')}<input type="number" min="0" step="any" value={value.minimum} onChange={e=>set('minimum',e.target.value)}/></label>
  <details><summary>{w('Columns','Столбцы','列')}</summary>{labels.map((label,i)=><label key={i}><input type="checkbox" checked={!value.hidden.includes(i)} onChange={()=>set('hidden',value.hidden.includes(i)?value.hidden.filter(n=>n!==i):value.hidden.length<7?[...value.hidden,i]:value.hidden)}/>{label}</label>)}</details><button onClick={()=>onChange(defaultFilters)}>{w('Reset filters','Сбросить фильтры','重置筛选')}</button>
- <small>{w('Filters apply to the loaded sample. Times use your computer’s time zone.','Фильтры применяются к загруженной выборке. Время — в часовом поясе компьютера.','筛选适用于已加载样本。时间使用电脑时区。')}</small></div>;
+ <small>{w('Filters apply to the loaded sample. Times use your computer’s time zone.','Фильтры применяются к загруженной выборке. Время — в часовом поясе компьютера.','筛选适用于已加载样本。时间使用电脑时区。')} {range&&<strong>{w('Loaded dates: ','Даты загруженных операций: ','已加载日期：')}{range}</strong>}</small>
+ {outside?<p className="sample-filter-warning" role="status">{w('The selected dates are outside this sample. This filter does not load older blockchain history. Reset the dates to see the loaded transactions.','Выбранные даты вне загруженной выборки. Фильтр не загружает архив блокчейна. Сбросьте даты, чтобы увидеть загруженные операции.','所选日期超出样本范围。此筛选不会加载区块链历史，请重置日期查看已加载交易。')}</p>:null}
+ {(value.from||value.to)&&rows.some(row=>!row.timestamp)&&<small>{w('Operations without a known date are excluded by the date filter.','Операции без известной даты исключены фильтром дат.','日期未知的交易会被日期筛选排除。')}</small>}</div>;
 }
 type Watch={network:string;address:string;seen:string[];ready:boolean};
 export function AddressAlerts({network,address,onOpen}:{network:string;address?:string;onOpen:(entry:any)=>void}){
