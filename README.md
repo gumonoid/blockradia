@@ -28,14 +28,14 @@ The graph's Saved investigations section stores named local snapshots with notes
 
 ## Download
 
-Choose the package for your operating system. Downloads are hosted in this **private repository**, so you must be signed in to an account with access.
+Windows portable is available in v1.1.3. macOS and Linux packages are available in v1.1.2. Choose the package for your operating system. Downloads are hosted in this **private repository**, so you must be signed in to an account with access.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
 | **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Windows-x64.exe) |
-| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-arm64.zip) |
-| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-x64.zip) |
-| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Linux-x64.tar.gz) |
+| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-arm64.zip) |
+| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-x64.zip) |
+| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-Linux-x64.tar.gz) |
 
 [All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
 
