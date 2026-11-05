@@ -52,19 +52,21 @@ try {
   await graph.getByRole('button', {name:'Exit fullscreen', exact:true}).click();
   await page.waitForFunction(() => !document.fullscreenElement);
 
-  await page.locator('.notification-bell').click();
-  const keepWatching = page.getByRole('checkbox', {name:/system tray/});
-  await keepWatching.click();
-  await page.waitForFunction(() => document.querySelector('.background-watch input')?.checked);
-  const hidden = await app.evaluate(({BrowserWindow}) => {
-    const window = BrowserWindow.getAllWindows()[0];
-    window.close();
-    return !window.isDestroyed() && !window.isVisible();
-  });
-  assert.equal(hidden,true,'Closing the window keeps the tray watcher running');
-  await app.evaluate(({BrowserWindow}) => BrowserWindow.getAllWindows()[0].show());
-  await keepWatching.click();
-  await page.waitForFunction(() => !document.querySelector('.background-watch input')?.checked);
+  if (process.platform === 'win32') {
+    await page.locator('.notification-bell').click();
+    const keepWatching = page.getByRole('checkbox', {name:/system tray/});
+    await keepWatching.click();
+    await page.waitForFunction(() => document.querySelector('.background-watch input')?.checked);
+    const hidden = await app.evaluate(({BrowserWindow}) => {
+      const window = BrowserWindow.getAllWindows()[0];
+      window.close();
+      return !window.isDestroyed() && !window.isVisible();
+    });
+    assert.equal(hidden,true,'Closing the window keeps the tray watcher running');
+    await app.evaluate(({BrowserWindow}) => BrowserWindow.getAllWindows()[0].show());
+    await keepWatching.click();
+    await page.waitForFunction(() => !document.querySelector('.background-watch input')?.checked);
+  }
 
 } finally {
   await app?.close();

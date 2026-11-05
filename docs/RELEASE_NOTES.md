@@ -1,14 +1,11 @@
-# BlockRadia 1.1.2
+# BlockRadia 1.1.4
 
-Desktop packages built from the source code in this repository.
+Search public blockchain addresses, inspect balances and transaction history, and explore counterparties in the wallet graph. An internet connection is required for live data. The interface defaults to English and can be changed in Settings. No wallet connection or private key is required.
 
-- **Windows x64:** portable `.exe`.
-- **macOS Apple Silicon:** `arm64` `.dmg` or `.zip`.
-- **macOS Intel:** `x64` `.dmg` or `.zip`.
-- **Linux x64:** `.AppImage` or `.tar.gz`.
+- **Windows x64:** download and open the portable EXE. Windows may show a SmartScreen warning because the package is unsigned.
+- **macOS:** choose arm64 for Apple Silicon or x64 for Intel. Open the DMG and drag BlockRadia into Applications, or extract the ZIP. The builds use ad-hoc signing and Gatekeeper may require approval in Privacy & Security.
+- **Linux x64:** make the AppImage executable and run it. If the system lacks the required FUSE support, use the tar.gz archive, extract it, and run the executable inside.
 
-This release includes the responsive wallet search introduced in 1.1.1: balance first, history and relationships next, bounded API requests, cancellation, and retry without losing the visible balance. It supports Ethereum, TRON, Solana, TON, Base, Arbitrum, Polygon, and Optimism.
+This release improves history coverage and filtering, adds indexed TON Jetton transfers, and lets you import saved investigations and focus the graph by transfer direction. On Windows, you can optionally keep address monitoring active in the system tray after closing the window.
 
-Windows packages are unsigned; macOS packages use ad-hoc signing and are not notarized. An internet connection is needed for live blockchain and market data. No private key or wallet connection is needed. The application interface is currently in Russian; the repository documentation is in English.
-
-Check `SHA256SUMS.txt` to verify your download. Full source and build instructions are available in the repository README.
+Sign in to GitHub with repository access to download. SHA256SUMS.txt lists the SHA-256 digest for every package.

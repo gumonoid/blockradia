@@ -90,6 +90,25 @@ jobs:
             xcrun stapler validate "$temp/BlockRadia.app"
             codesign --verify "release/BlockRadia-macOS-$arch.dmg"
           done
+      - name: Check first launch on Windows
+        if: matrix.platform == 'windows'
+        run: node scripts/desktop-smoke.mjs release/win-unpacked/BlockRadia.exe
+      - name: Check first launch from the Linux archive
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          temp=$(mktemp -d)
+          tar -xzf release/BlockRadia-Linux-x64.tar.gz -C "$temp"
+          executable=$(find "$temp" -type f -name blockradia-desktop -print -quit)
+          test -n "$executable"
+          xvfb-run -a node scripts/desktop-smoke.mjs "$executable"
+      - name: Check first launch from the Intel macOS ZIP
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          temp=$(mktemp -d)
+          ditto -x -k release/BlockRadia-macOS-x64.zip "$temp"
+          node scripts/desktop-smoke.mjs "$temp/BlockRadia.app/Contents/MacOS/BlockRadia"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: blockradia-${{ matrix.platform }}

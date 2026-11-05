@@ -14,16 +14,16 @@ Explore nine networks, trace transfers in an interactive graph, and save your re
 
 ## Download
 
-**Version 1.1.3** is available for Windows, macOS, and Linux. Sign in to GitHub with access to this private repository, then choose your platform.
+The **latest release** is available for Windows, macOS, and Linux. Sign in to GitHub with access to this private repository, then choose your platform.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
-| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-Windows-x64.exe) |
-| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-arm64.zip) |
-| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-x64.zip) |
-| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-Linux-x64.tar.gz) |
+| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Windows-x64.exe) |
+| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-arm64.zip) |
+| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-macOS-x64.zip) |
+| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Linux-x64.tar.gz) |
 
-[All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
+[All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
 
 ### Start exploring
 

@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.1.4
+
+- Show transaction timestamps separately from refresh times, with clearer history coverage and filters.
+- Focus the wallet graph on incoming or outgoing transfers and reveal complete addresses in tables.
+- Include indexed Jetton transfers in TON wallet history and load more indexed token and internal transfers on supported EVM networks.
+- Import investigation snapshots and optionally keep address monitoring active in the Windows system tray after closing the window.
+- Reject backslash paths in the local desktop HTTP server consistently across platforms.
+- Check packaged desktop startup in the release pipeline.
+
+## 1.1.3
 
 - Pace Solana transaction requests through a shared queue and honor RPC rate-limit cooldowns.
 - Retain decoded transactions in a bounded in-memory cache to reduce repeat requests.
