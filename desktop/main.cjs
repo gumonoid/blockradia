@@ -30,7 +30,9 @@ if(req.method!=='GET'){res.writeHead(405);res.end();return}
 const url=new URL(req.url,origin);
 if(!allowLocalRequest(req.headers,origin)){res.writeHead(403);res.end();return}
 if(url.pathname==='/api/explorer'){if(req.headers['x-blockradia-client']!=='1'){res.writeHead(403);res.end();return}const response=await GET(new Request(url));res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(await response.text());return}
-const filename=path.resolve(root,'.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));
+const pathname=decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname);
+if(pathname.includes('\\')){res.writeHead(403);res.end();return}
+const filename=path.resolve(root,'.'+pathname);
 if(!filename.startsWith(root+path.sep)){res.writeHead(403);res.end();return}
 const content=await fs.readFile(filename);
 const ext=path.extname(filename);const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png'};
