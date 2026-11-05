@@ -1,5 +1,26 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {createSolanaThrottle} from '../lib/solana-throttle.ts';
-test('concurrent callers share transaction pacing slots',async()=>{const throttle=createSolanaThrottle(25,40),times=[];await Promise.all(Array.from({length:4},async()=>{await throttle.wait(new AbortController().signal);times.push(Date.now())}));for(let i=1;i<times.length;i++)assert(times[i]-times[i-1]>=24);});
+test('concurrent callers share transaction pacing slots',async t=>{
+  t.mock.timers.enable({apis:['Date','setTimeout']});
+  const throttle=createSolanaThrottle(25,40);
+  const times=[];
+  const waiting=Array.from({length:4},async()=>{
+    await throttle.wait(new AbortController().signal);
+    times.push(Date.now());
+  });
+  await Promise.resolve();
+  assert.deepEqual(times,[0]);
+  for(let slot=1;slot<4;slot++){
+    t.mock.timers.tick(24);
+    await Promise.resolve();
+    assert.equal(times.length,slot);
+    t.mock.timers.tick(1);
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.equal(times.length,slot+1);
+  }
+  await Promise.all(waiting);
+  assert.deepEqual(times,[0,25,50,75]);
+});
 test('rate-limit cooldown delays already queued callers',async()=>{const throttle=createSolanaThrottle(5,70);await throttle.wait(new AbortController().signal);throttle.backoff();const start=Date.now();await throttle.wait(new AbortController().signal);assert(Date.now()-start>=65);});
 test('Retry-After is respected when longer than default cooldown',async()=>{const throttle=createSolanaThrottle(1,10);throttle.backoff(90);const start=Date.now();await throttle.wait(new AbortController().signal);assert(Date.now()-start>=85);});
 test('waiting transaction requests can be cancelled promptly',async()=>{const throttle=createSolanaThrottle(1,5000);throttle.backoff();const c=new AbortController();const waiting=throttle.wait(c.signal);c.abort(new Error('cancelled'));await assert.rejects(waiting,/cancelled/);});
