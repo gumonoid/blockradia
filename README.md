@@ -14,16 +14,16 @@ Explore nine networks, trace transfers in an interactive graph, and save your re
 
 ## Download
 
-Sign in to GitHub with access to this private repository, then choose your platform.
+**Version 1.1.3** is available for Windows, macOS, and Linux. Sign in to GitHub with access to this private repository, then choose your platform.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
-| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/latest/download/BlockRadia-Windows-x64.exe) |
-| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-arm64.zip) |
-| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-macOS-x64.zip) |
-| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/download/v1.1.2/BlockRadia-Linux-x64.tar.gz) |
+| **Windows** | Intel / AMD 64-bit | [**Portable EXE**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-Windows-x64.exe) |
+| **macOS** | Apple Silicon — M1 / M2 / M3 / M4 and later | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-arm64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-arm64.zip) |
+| **macOS** | Intel 64-bit | [**DMG**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-x64.dmg) · [ZIP](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-macOS-x64.zip) |
+| **Linux** | Intel / AMD 64-bit | [**AppImage**](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-Linux-x86_64.AppImage) · [tar.gz](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/BlockRadia-Linux-x64.tar.gz) |
 
-[All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
+[All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/download/v1.1.3/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
 
 ### Start exploring
 
@@ -60,7 +60,7 @@ Base and Polygon wallet history uses Alchemy through the shared server. End user
 | Polygon | POL | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
 | Optimism | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
 
-Native-asset prices and history use Kraken USD pairs for the 1H and 4H ranges and **DefiLlama Coins** for longer ranges. All providers are accessed through the shared server without user keys. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
+Kraken supplies USD candles for every price period. DefiLlama provides a line-chart fallback. The app uses the shared API for most requests and public providers directly for TRON and Solana date-range history. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
 
 ### What the graph means
 
@@ -77,6 +77,15 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 ## Your first investigation
 
+1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
+2. Review the native balance as soon as it arrives; history and graph data follow separately.
+3. Select a node, add a nickname, then choose **Expand wallet relationships** in the inspector.
+4. Select a connection to inspect its amounts and transaction hashes. Drag the graph or use zoom / fit controls to adjust the view.
+5. Open **History** to rename or revisit wallets. Use CSV or JSON export to save the loaded research.
+
+<details>
+<summary>Market charts, fee estimates and transaction coverage</summary>
+
 Network fees refresh independently on load, once per minute when automatic updates are enabled, on returning to the tab, and with the refresh button. Each quote shows its source and observation time. EVM networks report the mean observed gas price in the latest block (Gwei), with a labelled RPC estimate for empty blocks; additional L1 fees on rollups are excluded. Bitcoin shows a three-block confirmation fee estimate in sat/vB, TRON shows live Energy and Bandwidth burn tariffs in SUN, and Solana/GRAM(TON) show mean observed transaction fees in their native currency. Failed refreshes retain the previous quote with an unavailable notice and its original timestamp.
 
 Fee definitions: [Ethereum execution API](https://ethereum.github.io/execution-apis/next/api/methods/eth_getBlockByNumber/), [Bitcoin fee estimates](https://github.com/Blockstream/esplora/blob/master/API.md#fee-estimates), [TRON resource prices](https://developers.tron.network/docs/bandwidth-and-energy), [Solana fees](https://solana.com/docs/core/fees), and [GRAM(TON) transaction fields](https://docs.ton.org/api/v3/blockchain-data/get-transactions).
@@ -85,17 +94,13 @@ The transaction table displays up to 100 recent unique transactions, ten per pag
 
 Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D, 30D, 90D, and 1Y. The 1H range uses 60 one-minute exchange candles; 4H uses 48 five-minute candles from [Kraken public OHLC](https://docs.kraken.com/api-reference/market-data/get-ohlc-data). The current unfinished candle is identified in its tooltip. All networks and periods use Kraken USD OHLC: 24H uses hourly candles, 7D and 14D use four-hour candles, and 30D, 90D and 1Y use daily candles. Exchange failures fall back to a labelled DefiLlama line chart; synthetic candles are not shown. Activity charts use line view only. The price card and chart display signed change over the selected period, green for growth and red for decline. Native wallet balances include an approximate USD valuation using the current available coin price; missing balances or quotes are never treated as zero. Large GRAM(TON) transfers must exceed 500 GRAM(TON); exactly 500 GRAM(TON) is excluded, and outgoing native messages are included.
 
-1. Select the correct network and paste a public wallet address or transaction hash. Use **Ctrl + K** to focus search.
-2. Review the native balance as soon as it arrives; history and graph data follow separately.
-3. Select a node, add a nickname, then choose **Expand wallet relationships** in the inspector.
-4. Select a connection to inspect its amounts and transaction hashes. Drag the graph or use zoom / fit controls to adjust the view.
-5. Open **History** to rename or revisit wallets. Use CSV or JSON export to save the loaded research.
+</details>
 
 ## Build from source
 
 ### Shared server mode
 
-New desktop builds use the shared API at `https://blockradia-api.onrender.com`, so desktop users do not need provider keys. The backend, Docker image, and Render deployment configuration are included. See [deployment and desktop configuration](docs/SHARED_SERVER.md). Existing release packages predate this setup. The free preview server can take about a minute to wake after inactivity. Server hosting does not change provider plan restrictions.
+New desktop builds use the shared API at `https://blockradia-api.onrender.com`, so desktop users do not need provider keys. The backend, Docker image, and Render deployment configuration are included. See [deployment and desktop configuration](docs/SHARED_SERVER.md). The free preview server can take about a minute to wake after inactivity. Server hosting does not change provider plan restrictions.
 
 ### Requirements
 
@@ -171,7 +176,7 @@ Maintainers can run it from **Actions → Build desktop packages → Run workflo
 
 - **Read-only:** no private keys, wallet signatures, or fund transfers are used.
 - **Local annotations:** history, bookmarks, and nicknames are stored in the application's local profile. Sharing exports is an explicit action.
-- **Internet lookups:** searched public addresses are sent to the corresponding blockchain API providers. Market requests go to DefiLlama Coins.
+- **Internet lookups:** searched public addresses are sent to the corresponding blockchain API providers. Market quotes use Kraken and DefiLlama.
 - **Isolated desktop window:** Node.js access is disabled in the renderer, with sandbox and context isolation enabled.
 - **Local service:** the embedded API binds only to `127.0.0.1:19237`. It is not a public web service.
 
