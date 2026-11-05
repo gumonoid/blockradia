@@ -48,17 +48,19 @@ Exchange labels include their source and coverage notes. [Exchange address regis
 
 Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview combines recent RPC blocks with growthepie analytics: network-wide daily transactions, daily active addresses, and a 30-day activity chart. Daily statistics show their UTC date and source; they are not all-time transaction or address totals. The current incomplete UTC day is excluded. [growthepie definitions and coverage](https://docs.growthepie.com/).
 
-| Network | Native asset | Data source | Relationship coverage |
-| :--- | :---: | :--- | :--- |
-| Bitcoin | BTC | Blockstream Esplora | Balance, recent confirmed and pending transactions, UTXO outputs; graph attribution limited to single-input-address transactions |
-| Ethereum | ETH | Blockscout / public RPC | Native, ERC-20, and internal transfers when the indexer is available |
-| TRON | TRX | TronGrid | Recent native transfers and TRC-20 transfers |
-| Solana | SOL | Solana Mainnet RPC | Parsed system and supported SPL transfer instructions |
-| GRAM(TON) | GRAM(TON) | GRAM(TON) Center v3 | Recent internal GRAM(TON) messages; friendly and raw Mainnet addresses |
-| Base | ETH | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
-| Arbitrum | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
-| Polygon | POL | Alchemy / public RPC | Up to 100 incoming and 100 outgoing native, internal, and ERC-20 transfers |
-| Optimism | ETH | Blockscout / public RPC | Indexed transfers where available; restricted ERC-20 log fallback |
+| Network | Native asset | Date history | Token and graph coverage | Pending feed | Recent history limit |
+| :--- | :---: | :--- | :--- | :---: | :--- |
+| Bitcoin | BTC | Esplora block and address archive | UTXO outputs; graph attribution requires a single input address | Yes | 100 displayed rows |
+| Ethereum | ETH | Blockscout or bounded RPC archive | Native, ERC-20 and internal transfers with the indexer | — | Up to 100 rows per indexed stream |
+| TRON | TRX | TronGrid account archive or TRON block archive | Native and TRC-20 transfers | — | 100 native and 100 token operations |
+| Solana | SOL | Solana RPC archive, subject to node retention | Parsed system and supported SPL transfer instructions | — | Up to 100 signatures in extended analysis |
+| GRAM(TON) | GRAM(TON) | TON Center archive | Native internal messages and indexed Jetton wallet transfers with known precision | — | 100 native transactions and 100 Jetton transfers |
+| Base | ETH | Alchemy, Blockscout or bounded RPC archive | Native, internal and ERC-20 transfers with an indexer | — | Up to 100 incoming and 100 outgoing via Alchemy |
+| Arbitrum | ETH | Blockscout or bounded RPC archive | Indexed transfers; restricted ERC-20 log fallback | — | Up to 100 rows per indexed stream |
+| Polygon | POL | Alchemy, Blockscout or bounded RPC archive | Native, internal and ERC-20 transfers with an indexer | — | Up to 100 incoming and 100 outgoing via Alchemy |
+| Optimism | ETH | Blockscout or bounded RPC archive | Indexed transfers; restricted ERC-20 log fallback | — | Up to 100 rows per indexed stream |
+
+Date search returns up to 100 rows per selected range. Provider availability and retention can reduce coverage. The transaction table displays up to 100 rows, even when the graph loads additional token or internal transfers.
 
 Kraken supplies USD candles for every price period. DefiLlama provides a line-chart fallback. The app uses the shared API for most requests and public providers directly for TRON and Solana date-range history. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
 
@@ -70,7 +72,7 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 
 - EVM indexer responses use the latest available pages. RPC fallback covers a bounded block range and may be restricted by the provider.
 - TRON loads up to 100 recent native operations and 100 token operations. Unknown token precision is not guessed.
-- GRAM(TON) loads up to 100 recent transactions and their GRAM(TON) messages. Jetton decoding is not included.
+- GRAM(TON) combines native messages and indexed Jetton transfers. If token precision is missing, the transfer is skipped and the sample is marked partial.
 - Solana decodes up to 100 recent signatures progressively in extended wallet analysis. Unsupported or unavailable details remain explicitly incomplete.
 
 **No visible connection does not prove that no transfer exists.**
@@ -81,7 +83,8 @@ This is a lightweight explorer using public APIs, **not a complete blockchain in
 2. Review the native balance as soon as it arrives; history and graph data follow separately.
 3. Select a node, add a nickname, then choose **Expand wallet relationships** in the inspector.
 4. Select a connection to inspect its amounts and transaction hashes. Drag the graph or use zoom / fit controls to adjust the view.
-5. Open **History** to rename or revisit wallets. Use CSV or JSON export to save the loaded research.
+5. Open **History** to rename or revisit wallets. Export rows as CSV, or save the graph and notes under **Saved investigations**. Export an investigation as JSON and import it from the same panel on another computer.
+6. To watch a wallet, open **Notifications** and choose **Watch this wallet**. On supported desktops, enable system tray monitoring to keep checking after closing the window. Quitting BlockRadia stops checks.
 
 <details>
 <summary>Market charts, fee estimates and transaction coverage</summary>
@@ -168,7 +171,7 @@ tests/                        Adapter and timeout regression tests
 
 ## How releases are built
 
-The **Build desktop packages** workflow validates the source, builds packages on Windows, macOS, and Linux runners, checks that every required asset exists, and publishes the release only after all three platform builds succeed. It also generates `SHA256SUMS.txt`. Official GitHub Actions are pinned to specific commits.
+The **Build desktop packages** workflow validates the source, builds packages on Windows, macOS, and Linux runners, checks that every required asset exists, and publishes the release only after all three platform builds succeed. It also generates `SHA256SUMS.txt`. Official GitHub Actions are pinned to specific commits. The **Verify changes** workflow runs type checks, tests and a build on pull requests. It also starts the unpacked Windows application with fixture data and verifies wallet navigation and fullscreen controls. See [release signing](docs/RELEASE_SIGNING.md) for configuring signed future releases.
 
 Maintainers can run it from **Actions → Build desktop packages → Run workflow**, or push a version tag after updating both package versions. A published version is not silently overwritten; a new release requires a version bump.
 

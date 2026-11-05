@@ -35,7 +35,7 @@ Terminate HTTPS at the hosting proxy. `TRUST_PROXY=true` is reserved for a trust
 
 ## Operation and privacy
 
-Only GET requests to `/api/explorer` and `/healthz` are served. There is no general URL proxy and no wallet mutation endpoint. Parameters are validated by the existing explorer adapter. Rate limits default to 60 requests per minute per client and 16 active requests per instance; overload returns 429. Existing request deduplication, provider pacing and bounded in-memory caches are shared across users in that process. Multiple replicas have separate caches and limits.
+Only GET requests to `/api/explorer` and `/healthz` are served. There is no general URL proxy and no wallet mutation endpoint. Parameters are validated by the existing explorer adapter. Rate limits default to 60 requests per minute per client and 16 active requests per instance. The shared request budget defaults to 600 requests per minute per instance and can be set through `API_REQUESTS_PER_MINUTE`. Overload returns 429 with a retry delay. Existing request deduplication, provider pacing and bounded in-memory caches are shared across users in that process. Multiple replicas have separate caches and limits.
 
 The service receives searched public addresses, network choices and client IP addresses. History, bookmarks and nicknames stay on the user's computer. Application code does not log requests or credentials; hosting platforms may retain access logs. A public API has no embedded client secret: a distributable desktop app cannot keep one private. Capacity and provider quotas must be monitored before a larger public rollout.
 
