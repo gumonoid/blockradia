@@ -1,5 +1,6 @@
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('blockradiaWindow',{
+  watchInBackground:(enabled,language)=>ipcRenderer.invoke('watch-in-background',enabled,language),
   exitFullscreen:()=>ipcRenderer.send('exit-fullscreen'),
   toggleFullscreen:()=>ipcRenderer.send('toggle-fullscreen'),
   watchFullscreen:callback=>{

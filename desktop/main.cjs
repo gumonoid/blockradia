@@ -1,4 +1,4 @@
-const {app,BrowserWindow,shell,dialog,ipcMain}=require('electron');
+const {app,BrowserWindow,shell,dialog,ipcMain,Tray,Menu}=require('electron');
 const http=require('node:http');
 const fs=require('node:fs/promises');
 const path=require('node:path');
@@ -13,7 +13,8 @@ const origin=`http://127.0.0.1:${port}`;
 const legacyProfile=path.join(app.getPath('appData'),['chain','lens-desktop'].join(''));
 if(!profileOverride&&!require('node:fs').existsSync(profile)&&require('node:fs').existsSync(legacyProfile))require('node:fs').cpSync(legacyProfile,profile,{recursive:true});
 app.setPath('userData',profile);
-let window,server;
+let window,server,tray;
+let quitting=false;
 const lock=app.requestSingleInstanceLock();
 if(!lock){app.quit()}else{
 app.on('second-instance',()=>{if(window){if(window.isMinimized())window.restore();window.show();window.focus()}});
@@ -40,6 +41,23 @@ window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,titl
 window.webContents.session.setPermissionCheckHandler((contents,permission,requestingOrigin)=>allowPermission(contents,window.webContents,permission,requestingOrigin,origin));
 window.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(allowPermission(contents,window.webContents,permission,details.requestingUrl||contents.getURL(),origin)));
 window.webContents.on('will-attach-webview',event=>event.preventDefault());
+ipcMain.handle('watch-in-background',(event,enabled,language)=>{
+ if(!trustedIPC(event,window.webContents,origin)||typeof enabled!=='boolean')return false;
+ if(enabled&&!tray){
+  try{
+   tray=new Tray(path.join(__dirname,process.platform==='win32'?'icon.ico':'icon.png'));
+   const open=language==='ru'?'Открыть BlockRadia':language==='zh'?'打开 BlockRadia':'Open BlockRadia';
+   const quit=language==='ru'?'Выйти из BlockRadia':language==='zh'?'退出 BlockRadia':'Quit BlockRadia';
+   tray.setToolTip('BlockRadia');
+   tray.setContextMenu(Menu.buildFromTemplate([{label:open,click:()=>window.show()},{label:quit,click:()=>app.quit()}]));
+   tray.on('click',()=>window.show());
+  }catch{tray?.destroy();tray=undefined;return false;}
+ }else if(!enabled&&tray){tray.destroy();tray=undefined;}
+ window.webContents.setBackgroundThrottling(!tray);
+ return !!tray;
+});
+window.on('close',event=>{if(tray&&!quitting){event.preventDefault();window.hide();}});
+
 let htmlFullscreen=false;
 const fullscreen=()=>window.isFullScreen()||htmlFullscreen;
 ipcMain.handle('fullscreen-state',event=>trustedIPC(event,window.webContents,origin)?fullscreen():false);
@@ -60,4 +78,4 @@ window.webContents.on('will-navigate',(event,url)=>{if(!appOrigin(url,origin)){e
 await window.loadURL(origin+'/');
 }
 app.on('window-all-closed',()=>app.quit());
-app.on('before-quit',()=>server?.close());
+app.on('before-quit',()=>{quitting=true;tray?.destroy();tray=undefined;server?.close()});
