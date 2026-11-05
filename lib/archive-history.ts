@@ -75,9 +75,37 @@ async function solanaArchive(start:number,end:number,address:string,read:Read,be
  const rpc=async(method:string,params:any[])=>{let error:unknown;const failures:string[]=[];for(const endpoint of [...new Set([source,alchemyRPC,'https://solana-rpc.publicnode.com','https://solana.publicnode.com','https://api.mainnet-beta.solana.com','https://solana.api.onfinality.io/public'].filter(Boolean))].filter(url=>!blocked.has(url))){try{const response=await read(endpoint,{jsonrpc:'2.0',id:1,method,params},{timeoutMs:5000,retries:0});if(response.result==null)throw Error('Solana archive returned no data');source=endpoint;return response.result}catch(e){error=e;failures.push(new URL(endpoint).hostname+': '+String((e as Error).message).slice(0,180));if(/HTTP (401|403|429)|Too Many Requests/.test(String((e as Error).message)))blocked.add(endpoint)}}throw Error('Solana archive: '+failures.join(' | '))};
  const from=start/1000,to=end/1000,tip=await rpc('getSlot',[{commitment:'finalized'}]);
  const times=new Map<number,{slot:number;time:number}>();
- const time=async(slot:number)=>{if(times.has(slot))return times.get(slot)!;try{const t=await rpc('getBlockTime',[slot]);const row={slot,time:Number(t)};times.set(slot,row);return row}catch{const slots=await rpc('getBlocks',[slot,Math.min(tip,slot+100),{commitment:'finalized'}]);if(!slots.length)throw Error('Historical Solana slots are unavailable');const row={slot:slots[0],time:Number(await rpc('getBlockTime',[slots[0]]))};times.set(slot,row);return row}};
- let lo=0,hi=tip,last=-1;
- while(lo<=hi){const mid=Math.floor((lo+hi)/2),row=await time(mid);if(!Number.isFinite(row.time))throw Error('Invalid Solana block time');if(row.time<=to){last=row.slot;lo=Math.max(mid+1,row.slot+1)}else hi=mid-1;}
+ async function time(slot:number){
+  const known=times.get(slot);
+  if(known)return known;
+  try{
+   const row={slot,time:Number(await rpc('getBlockTime',[slot]))};
+   times.set(slot,row);
+   return row;
+  }catch(error){
+   const slots=await rpc('getBlocks',[slot,Math.min(tip,slot+100),{commitment:'finalized'}]).catch(()=>[]);
+   if(!slots.length)throw error;
+   const row={slot:slots[0],time:Number(await rpc('getBlockTime',[slots[0]]))};
+   times.set(slot,row);
+   return row;
+  }
+ }
+ let lo=0,hi=tip,last=-1,archiveFloor=0;
+ while(lo<=hi){
+  const mid=Math.floor((lo+hi)/2);
+  let row:{slot:number;time:number};
+  try{row=await time(mid)}catch(error){
+   const match=String((error as Error).message).match(/first available block:\s*(\d+)/i);
+   const first=match?Number(match[1]):NaN;
+   if(!Number.isSafeInteger(first)||first<=mid||first>tip)throw error;
+   archiveFloor=Math.max(archiveFloor,first);
+   lo=archiveFloor;
+   continue;
+  }
+  if(!Number.isFinite(row.time))throw Error('Invalid Solana block time');
+  if(row.time<=to){last=row.slot;lo=Math.max(mid+1,row.slot+1)}else hi=mid-1;
+ }
+ if(last<0&&archiveFloor>0)throw Error('The selected Solana dates are older than the available public archive.');
  const result=(rows:any[],partial=false,warnings:string[]=[])=>({transactions:rows.filter(t=>Date.parse(t.timestamp)>=start&&Date.parse(t.timestamp)<=end).sort((a,b)=>b.block_number-a.block_number).slice(0,100),source:source.includes('.g.alchemy.com')?'https://www.alchemy.com':source,source_name:'Solana RPC archive',partial_history:partial,warnings,range:{start,end},fetched_at:new Date().toISOString()});
  if(last<0)return result([]);
  const getBlock=(slot:number,details='full')=>rpc('getBlock',[slot,{encoding:'jsonParsed',transactionDetails:details,rewards:false,maxSupportedTransactionVersion:1,commitment:'finalized'}]);
@@ -94,9 +122,9 @@ async function solanaArchive(start:number,end:number,address:string,read:Read,be
  }
  const rows:any[]=[];let slot=last,finished=false;
  for(let page=0;slot>=0&&page<32&&rows.length<100;page++){
-  const slots=await rpc('getBlocks',[Math.max(0,slot-31),slot,{commitment:'finalized'}]);
+  const slots=await rpc('getBlocks',[Math.max(archiveFloor,slot-31),slot,{commitment:'finalized'}]);
   for(const current of [...slots].reverse()){const b=await getBlock(current);if(b.blockTime<from){finished=true;break;}if(b.blockTime>to)continue;for(const tx of b.transactions||[]){if(tx.transaction?.message?.instructions?.some((i:any)=>i.program==='vote'))continue;const row=solanaArchiveTransaction(tx,current,b.blockTime);if(row.hash)rows.push(row);}if(rows.length>=100)break;}
-  if(finished)break;slot-=32;if(Date.now()-began>50000)break;
+  if(finished)break;slot-=32;if(slot<archiveFloor){finished=archiveFloor===0;break;}if(Date.now()-began>50000)break;
  }
- return result(rows,rows.length<100&&!finished&&slot>=0);
+ return result(rows,rows.length<100&&!finished&&(archiveFloor>0||slot>=0));
 }

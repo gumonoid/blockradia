@@ -32,6 +32,23 @@ test('Solana address archive anchors pagination at the chosen date and retains r
  let before;const result=await archiveHistory('solana',start,end,'alice',deps({read:async(_,body)=>{const [slot]=body.params;if(body.method==='getSlot')return {result:100};if(body.method==='getBlockTime')return {result:base+slot*60};if(body.method==='getBlocks')return {result:[slot]};if(body.method==='getSignaturesForAddress'){before=body.params[1].before;return {result:[{signature:'hash',slot:42,blockTime:base+42*60,err:null}]}}if(body.method==='getBlock'&&body.params[1].transactionDetails==='signatures')return {result:{signatures:['boundary']}};throw Error('Decode failed')}}));assert.equal(before,'boundary');assert.equal(result.transactions[0].hash,'hash');assert.equal(result.transactions[0].block_number,42);assert.equal(result.partial_history,true);assert.equal(result.transactions[0].value,undefined);
 });
 test('unknown Solana amounts are left unknown rather than invented from balance deltas',()=>{const tx=solanaArchiveTransaction({transaction:{signatures:['x'],message:{instructions:[]}},meta:{err:null}},42,base);assert.equal(tx.value,undefined);assert.equal(tx.from,undefined)});
+test('Solana date search skips pruned slots and identifies unavailable older dates',async()=>{
+ const read=async(_,body)=>{
+  const [slot,last]=body.params;
+  if(body.method==='getSlot')return {result:100};
+  if(body.method==='getBlockTime'){
+   if(slot<60)throw Error('Block cleaned up. First available block: 60');
+   return {result:base+slot*60};
+  }
+  if(body.method==='getBlocks')return {result:slot<60?[]:[last]};
+  if(body.method==='getBlock')return {result:{blockTime:base+slot*60,transactions:Array.from({length:100},(_,i)=>({transaction:{signatures:[String(i)],message:{instructions:[]}},meta:{err:null}}))}};
+  throw Error(body.method);
+ };
+ const result=await archiveHistory('solana',(base+70*60)*1000,(base+80*60)*1000,'',deps({read}));
+ assert.equal(result.transactions.length,100);
+ assert.equal(result.transactions[0].block_number,80);
+ await assert.rejects(archiveHistory('solana',start,end,'',deps({read})),/older than the available public archive/);
+});
 test('Alchemy date history uses block bounds and follows pages to collect distinct transaction hashes',async()=>{
  let pages=0;const data=await alchemyAddress('base','alice','test-key',async(_,body)=>{if(body.method==='eth_getBalance')return {result:'0x0'};if(body.method==='eth_getCode')return {result:'0x'};const options=body.params[0];assert.equal(options.fromBlock,'0x28');assert.equal(options.toBlock,'0x2d');if(options.toAddress)return {result:{transfers:[]}};pages++;const offset=options.pageKey?50:0;return {result:{...(!offset?{pageKey:'next'}:{}),transfers:Array.from({length:50},(_,i)=>({uniqueId:'id'+(offset+i),hash:'hash'+(offset+i),from:'alice',to:'bob',asset:'ETH',category:'external',rawContract:{decimal:'0x12',value:'0xde0b6b3a7640000'},blockNum:'0x2a',metadata:{blockTimestamp:'2025-03-02T12:00:00Z'}}))}}},{from:40,to:45});assert.equal(pages,2);assert.equal(data.transactions.length,100);assert.equal(data.partial_history,false);
 });
