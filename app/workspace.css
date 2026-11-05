@@ -143,3 +143,5 @@ tbody tr:hover{background:var(--theme-soft)}.mono,code{font-family:Consolas,"SFM
 .wallet-address-details code{display:block;max-width:220px;overflow-wrap:anywhere;white-space:normal;user-select:all}
 
 .background-watch{display:flex;align-items:flex-start;gap:8px;margin:0 0 12px}
+
+.table-coverage{padding:8px 16px;margin:0;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
