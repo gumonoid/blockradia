@@ -60,9 +60,16 @@ try {
 
   const fullscreen = graph.getByRole('button', {name:'Fullscreen', exact:true});
   await fullscreen.click();
-  await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'));
-  await graph.getByRole('button', {name:'Exit fullscreen', exact:true}).click();
-  await page.waitForFunction(() => !document.fullscreenElement);
+  await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
+  const exitFullscreen = graph.getByRole('button', {name:'Exit fullscreen', exact:true});
+  // A native macOS Space can move the window between mouse-down and mouse-up.
+  if (process.platform === 'darwin') {
+    await page.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible',null,{polling:100});
+    await exitFullscreen.press('Space');
+  } else {
+    await exitFullscreen.click();
+  }
+  await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
 
   if (process.platform === 'win32') {
     await page.locator('.notification-bell').click();
