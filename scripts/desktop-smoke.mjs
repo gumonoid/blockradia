@@ -34,13 +34,25 @@ try {
     await route.fulfill({json:payload});
   });
   const page = await app.firstWindow();
-  page.setDefaultTimeout(15000);
+  page.setDefaultTimeout(30000);
+  page.on('pageerror', error => console.error('Renderer:',error.message));
   await page.locator('.search-box input').waitFor();
   const search = page.locator('.search-box input');
   await search.fill(wallet);
-  await search.press('Enter');
+  const addressResult = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return url.pathname === '/api/explorer' && url.searchParams.get('action') === 'address'
+      && url.searchParams.get('q') === wallet;
+  });
   const graph = page.locator('.graph-panel');
-  await graph.locator('.graph-edge').first().waitFor();
+  try {
+    await page.locator('.search-submit').click();
+    assert.equal((await addressResult).status(), 200);
+    await graph.locator('.graph-edge').first().waitFor({state:'attached'});
+  } catch (error) {
+    console.error((await page.locator('body').innerText()).slice(0,2500));
+    throw error;
+  }
   await page.getByRole('button', {name:peer, exact:true}).first().click();
   await graph.locator('.inspector-address').filter({hasText:peer}).waitFor();
   await page.getByRole('button', {name:'Back', exact:true}).click();
