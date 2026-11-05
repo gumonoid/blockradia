@@ -1,5 +1,5 @@
 type Read=(url:string,body?:unknown,options?:{timeoutMs?:number;retries?:number})=>Promise<any>;
-type Dependencies={read:Read;evm:Record<string,{rpc:string;api:string;symbol:string}>;alchemy:(network:string,address:string,from:number,to:number)=>Promise<any>;tronNode:(path:string,body:any)=>Promise<any>;tronTx:(tx:any,block?:any)=>Promise<any>;tonRaw:(address:string)=>string;tonBundle:(data:any)=>any};
+type Dependencies={read:Read;evm:Record<string,{rpc:string;api:string;symbol:string}>;alchemy:(network:string,address:string,from:number,to:number)=>Promise<any>;tronNode:(path:string,body:any)=>Promise<any>;tronTx:(tx:any,block?:any)=>Promise<any>;tonRaw:(address:string)=>string;tonBundle:(data:any)=>any;tonJettons?:(address:string,range:{from:number;to:number})=>Promise<any>;mergeTonJettons?:(bundle:any,data:any,address:string)=>string[]};
 const stamp=(seconds:number)=>new Date(seconds*1000).toISOString();
 export async function blockAtTime(tip:number,target:number,getTime:(height:number)=>Promise<number>):Promise<number>{
  let lo=0,hi=tip,result=-1,archiveFloor=0;
@@ -12,10 +12,14 @@ export async function archiveHistory(network:string,start:number,end:number,addr
  const inRange=(tx:any)=>{const t=Date.parse(tx.timestamp||'');return Number.isFinite(t)&&t>=start&&t<=end};
  const done=(rows:any[],source:string,name:string,partial=false,warnings:string[]=[])=>({transactions:[...new Map(rows.filter(inRange).map(tx=>[tx.hash,tx])).values()].sort((a,b)=>Date.parse(b.timestamp)-Date.parse(a.timestamp)||(b.block_number||0)-(a.block_number||0)).slice(0,100),source,source_name:name,partial_history:partial,warnings,range:{start,end},fetched_at:new Date().toISOString()});
  if(network==='ton'){
-  const query=new URLSearchParams({limit:'100',sort:'desc',start_utime:String(from),end_utime:String(Math.floor(to)),...(address?{account:d.tonRaw(address)}:{workchain:'0'})});
-  const url='https://toncenter.com/api/v3/transactions?'+query,data=await d.read(url);
+  const raw=address?d.tonRaw(address):'';
+  const query=new URLSearchParams({limit:'100',sort:'desc',start_utime:String(from),end_utime:String(Math.floor(to)),...(raw?{account:raw}:{workchain:'0'})});
+  const url='https://toncenter.com/api/v3/transactions?'+query;
+  const [data,jettons]=await Promise.all([d.read(url),raw?d.tonJettons?.(raw,{from,to:Math.floor(to)}):undefined]);
   if(!Array.isArray(data.transactions))throw Error('TON archive did not return transactions');
-  return done(d.tonBundle(data).transactions,url,'TON Center archive');
+  const bundle=d.tonBundle(data);
+  const warnings=raw&&d.mergeTonJettons?d.mergeTonJettons(bundle,jettons,raw):[];
+  return done(bundle.transactions,url,'TON Center archive',warnings.length>0,warnings);
  }
  if(network==='tron'){
   if(address){

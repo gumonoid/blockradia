@@ -9,7 +9,7 @@ test('TON external wallet sends expose the largest real message amount and count
 });
 test('TON wallet history includes indexed Jettons without guessing decimals',async()=>{
  const original=globalThis.fetch;
- const from='0:'+'3'.repeat(64),to='0:'+'4'.repeat(64),master='0:'+'5'.repeat(64);
+ const from='0:'+'3'.repeat(64),to='0:'+'4'.repeat(64),master='0:'+'a'.repeat(64);
  globalThis.fetch=async input=>{
   const url=new URL(input);
   if(url.pathname.endsWith('/accountStates'))return Response.json({accounts:[{balance:'1'}]});
@@ -17,7 +17,7 @@ test('TON wallet history includes indexed Jettons without guessing decimals',asy
   assert.equal(url.pathname,'/api/v3/jetton/transfers');
   assert.equal(url.searchParams.get('owner_address'),from);
   const row={source:from,destination:to,jetton_master:master,amount:'1250000',transaction_aborted:false,transaction_now:1793730000};
-  return Response.json({metadata:{[master]:{token_info:[{type:'jetton_masters',symbol:'USDT',extra:{decimals:'6'}}]}},jetton_transfers:[
+  return Response.json({metadata:{[master.toUpperCase()]:{token_info:[{type:'jetton_masters',symbol:'USDT',extra:{decimals:'6'}}]}},jetton_transfers:[
    {...row,transaction_hash:'a'.repeat(64)},
    {...row,transaction_hash:'b'.repeat(64),transaction_aborted:true},
    {...row,transaction_hash:'c'.repeat(64),jetton_master:'0:'+'6'.repeat(64)}
