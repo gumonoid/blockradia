@@ -134,3 +134,10 @@ tbody tr:hover{background:var(--theme-soft)}.mono,code{font-family:Consolas,"SFM
 
 .transaction-freshness{display:grid;gap:4px;text-align:right}
 .transaction-freshness small{white-space:normal}
+
+.graph-direction{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.graph-direction button{padding:5px 7px}
+.graph-direction button[aria-pressed=true]{border-color:#ad92f1;color:#ad92f1}
+.wallet-address-details{font-size:11px;color:var(--muted)}
+.wallet-address-details summary{cursor:pointer}
+.wallet-address-details code{display:block;max-width:220px;overflow-wrap:anywhere;white-space:normal;user-select:all}
