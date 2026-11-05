@@ -30,3 +30,15 @@ test('concurrency overload is rejected while existing work completes',async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url='http://127.0.0.1:'+server.address().port+'/api/explorer';
  try{const first=fetch(url);await entered;assert.equal((await fetch(url)).status,429);finish();assert.equal((await first).status,200);}finally{finish();await new Promise(resolve=>server.close(resolve));}
 });
+test('global quota also limits requests from different client IP addresses',async()=>{
+ const server=createGateway(async()=>Response.json({ok:true}),{globalLimit:1,trustProxy:true});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const origin='http://127.0.0.1:'+server.address().port;
+ try{
+  assert.equal((await fetch(origin+'/api/explorer',{headers:{'x-forwarded-for':'192.0.2.1'}})).status,200);
+  const limited=await fetch(origin+'/api/explorer',{headers:{'x-forwarded-for':'192.0.2.2'}});
+  assert.equal(limited.status,429);
+  assert.ok(Number(limited.headers.get('retry-after'))>0);
+  assert.equal((await fetch(origin+'/healthz')).status,200);
+ }finally{await new Promise(resolve=>server.close(resolve));}
+});
