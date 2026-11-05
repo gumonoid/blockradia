@@ -2,33 +2,19 @@
 
 <img src="docs/assets/blockradia-banner.svg" alt="BlockRadia — connect the dots across blockchains" width="100%" />
 
-### A desktop workspace for exploring wallets and following on-chain transfers.
+# BlockRadia
 
-BlockRadia helps both professional blockchain researchers and everyday users explore wallet activity, trace transfers, and understand connections between addresses.
+**A desktop blockchain explorer and wallet investigation workspace**
 
-**Real API data · Interactive relationship graphs · Local research history**
+Explore nine networks, trace transfers in an interactive graph, and save your research locally.
 
-[Download](#download) · [Features](#features) · [Supported networks](#supported-networks) · [Build from source](#build-from-source) · [Release notes](CHANGELOG.md)
+[**Download BlockRadia**](#download) · [First investigation](#your-first-investigation) · [Networks](#supported-networks) · [Build from source](#build-from-source)
 
 </div>
 
----
-
-Known exchange addresses display their exchange logos in graphs, transaction tables, and history. The registry includes 3,077 public address labels across 81 exchange brands and all eight supported networks; [label sources and coverage](docs/EXCHANGE_LABELS.md).
-
-The transaction table includes Confirmed and Pending tabs, address/hash/nickname/exchange search, date bounds, incoming/outgoing direction for an opened wallet, asset and minimum-amount filters. Filters apply to the loaded sample. Column visibility is saved locally. Dates display the computer's time zone.
-
-Selecting dates on any supported network loads up to 100 transactions from its archive for the selected local-calendar period. Bitcoin, EVM, TRON and Solana network overviews locate historical blocks by time; GRAM(TON) uses TON Center time bounds. Wallet queries use date-bounded TON Center/TronGrid requests, block-bounded Alchemy or Blockscout EVM history, and date-anchored Solana signature pagination. Refresh reloads the selected period. Source rate limits and bounded scans are reported as partial results rather than a complete empty history. The EVM RPC fallback only covers direct transactions, not internal or token-only transfers. Solana retains known hashes, slots and dates if some details cannot be decoded. Bitcoin wallet scans stop after 80 pages; EVM fallback scans stop after 256 blocks. Historical unconfirmed transactions are not included.
-
-The desktop app reads TRON and Solana date-range archives directly from public providers using the user's connection, avoiding shared-server data-center restrictions. These archive requests require no user API key. Other networks continue through the shared server when configured. Public archive access remains subject to provider availability and rate limits.
-
-Address alerts support up to ten watched wallets while the app is open. The first successful check establishes a baseline; later checks run roughly once per minute and report newly observed transaction hashes. OS notifications require notification permission; the in-app event list remains available. Checks use each provider's available recent sample and may be delayed or incomplete during rate limits or network failures.
-
-The graph's Saved investigations section stores named local snapshots with notes, node positions, zoom, transfers and nicknames. Open restores the saved snapshot, including its network and root address; JSON exports provide a portable backup. Up to thirty snapshots are retained, subject to local storage capacity. Search history also supports network, record-type and date filters.
-
 ## Download
 
-Windows portable is available in v1.1.3. macOS and Linux packages are available in v1.1.2. Choose the package for your operating system. Downloads are hosted in this **private repository**, so you must be signed in to an account with access.
+Sign in to GitHub with access to this private repository, then choose your platform.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
@@ -39,22 +25,24 @@ Windows portable is available in v1.1.3. macOS and Linux packages are available 
 
 [All releases](https://github.com/gumonoid/blockradia/releases) · [SHA-256 checksums](https://github.com/gumonoid/blockradia/releases/latest/download/SHA256SUMS.txt) · [Build pipeline](https://github.com/gumonoid/blockradia/actions/workflows/desktop-release.yml)
 
-**Getting started:** open the Windows EXE, install the macOS application from its DMG, or make the Linux AppImage executable and run it. Node.js is **not** required for packaged downloads. An internet connection is required for blockchain and market data.
+### Start exploring
 
-Windows packages are unsigned; macOS packages use ad-hoc signing and are not notarized. The application interface is in Russian; this repository's documentation is in English. The banner above is an illustration, not a screenshot of live data.
+1. **Windows** — open the portable EXE.
+2. **macOS** — open the DMG and drag BlockRadia into Applications, or extract the ZIP. Choose Apple Silicon or Intel to match your Mac.
+3. **Linux** — mark the AppImage executable and run it, or extract the tar.gz package.
+
+Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. The Windows EXE is unsigned, and the macOS builds use ad-hoc signing.
 
 ## Features
 
-| Explore | Investigate | Keep your research |
+| Find activity | Follow transfers | Save your work |
 | :--- | :--- | :--- |
-| Search public addresses and transaction hashes | View wallets as nodes and transfers as directed edges | Save local nicknames for wallets |
-| See native balances and market prices | Expand a neighboring wallet to follow its relationships | Reopen recently investigated addresses |
-| Switch between price and network activity charts | Inspect amounts and the transactions behind a connection | Filter and export research history as JSON |
-| Browse recent operations and blocks from the loaded sample | Drag nodes, pan, zoom, fit the graph, and use fullscreen | Export transfer tables as CSV and graphs as JSON |
+| Search addresses, hashes and exchange labels | Expand and pin wallets on the relationship graph | Keep several wallets and investigations open in tabs |
+| Load up to 100 operations for a date range | Open transaction details alongside the table | Save graph positions, labels and investigation notes |
+| Filter by asset, amount, direction and status | Compare native balances and market charts | Watch up to ten wallets and review notifications |
+| Customize columns and use your local time zone | Switch between price lines and Kraken candles | Export transaction tables as CSV and graphs as JSON |
 
-### A search that does not keep you waiting forever
-
-Balance retrieval is independent from transaction-history decoding. The balance can appear first while relationships load. Requests have bounded waiting times, repeated concurrent calls are deduplicated, and background polling pauses during a search. You can cancel a request or retry history without losing the visible balance.
+Exchange labels include their source and coverage notes. [Exchange address registry](docs/EXCHANGE_LABELS.md)
 
 ## Supported networks
 
