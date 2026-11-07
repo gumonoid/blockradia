@@ -60,18 +60,23 @@ ipcMain.handle('watch-in-background',(event,enabled,language)=>{
 });
 window.on('close',event=>{if(tray&&!quitting){event.preventDefault();window.hide();}});
 
-let htmlFullscreen=false;
+let htmlFullscreen=false,exitRequested=false;
 const fullscreen=()=>window.isFullScreen()||htmlFullscreen;
 ipcMain.handle('fullscreen-state',event=>trustedIPC(event,window.webContents,origin)?fullscreen():false);
 ipcMain.on('toggle-fullscreen',event=>{if(!trustedIPC(event,window.webContents,origin))return;if(htmlFullscreen)window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');window.setFullScreen(!fullscreen());});
-ipcMain.on('exit-fullscreen',event=>{if(!trustedIPC(event,window.webContents,origin))return;if(htmlFullscreen)window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');window.setFullScreen(false);});
-window.on('enter-html-full-screen',()=>{htmlFullscreen=true;window.webContents.send('fullscreen-state',true)});
-window.on('leave-html-full-screen',()=>{htmlFullscreen=false;window.webContents.send('fullscreen-state',fullscreen())});
-window.on('enter-full-screen',()=>window.webContents.send('fullscreen-state',true));
-window.on('leave-full-screen',()=>window.webContents.send('fullscreen-state',htmlFullscreen));
+function exitFullscreen(){
+ exitRequested=true;
+ if(htmlFullscreen)window.webContents.executeJavaScript('document.fullscreenElement && document.exitFullscreen().catch(()=>{})').catch(()=>{});
+ window.setFullScreen(false);
+}
+ipcMain.on('exit-fullscreen',event=>{if(trustedIPC(event,window.webContents,origin))exitFullscreen();});
+window.on('enter-html-full-screen',()=>{htmlFullscreen=true;window.webContents.send('fullscreen-state',true);if(exitRequested)exitFullscreen();});
+window.on('leave-html-full-screen',()=>{htmlFullscreen=false;exitRequested=false;window.webContents.send('fullscreen-state',fullscreen())});
+window.on('enter-full-screen',()=>{window.webContents.send('fullscreen-state',true);if(exitRequested)exitFullscreen();});
+window.on('leave-full-screen',()=>{exitRequested=false;window.webContents.send('fullscreen-state',htmlFullscreen)});
 window.webContents.on('before-input-event',(event,input)=>{
 if(input.type!=='keyDown'||input.isAutoRepeat)return;
-const exitFullscreen=()=>{if(htmlFullscreen)window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');if(window.isFullScreen())window.setFullScreen(false);};
+
 if(input.key==='Escape'&&(window.isFullScreen()||htmlFullscreen)){event.preventDefault();exitFullscreen();}
 else if(input.key==='F11'){event.preventDefault();if(window.isFullScreen()||htmlFullscreen)exitFullscreen();else window.setFullScreen(true);}
 });

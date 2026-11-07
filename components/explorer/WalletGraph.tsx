@@ -21,7 +21,15 @@ const undoStack=useRef<any[]>([]),stateRef=useRef<any>(null),restoredSnapshot=us
 const [graphFullscreen,setGraphFullscreen]=useState(false);
 const fullscreenLabel=graphFullscreen?(language==='ru'?'Выйти из полноэкранного режима':language==='zh'?'退出全屏':'Exit fullscreen'):translate('Полный экран');
 useEffect(()=>{const changed=()=>setGraphFullscreen(document.fullscreenElement===panel.current);document.addEventListener('fullscreenchange',changed);return()=>document.removeEventListener('fullscreenchange',changed)},[]);
-async function toggleGraphFullscreen(){try{if(document.fullscreenElement===panel.current)await document.exitFullscreen();else await panel.current?.requestFullscreen();}catch(e){setError((e as Error).message)}}
+async function toggleGraphFullscreen(){
+ try{
+  if(document.fullscreenElement===panel.current){
+   const controls=(window as Window & {blockradiaWindow?:{exitFullscreen:()=>void}}).blockradiaWindow;
+   if(controls)controls.exitFullscreen();
+   else await document.exitFullscreen();
+  }else await panel.current?.requestFullscreen();
+ }catch(e){setError((e as Error).message)}
+}
 const canonical=addressKey(network,root),svg=useRef<SVGSVGElement>(null),alive=useRef(true),drag=useRef<any>(null),panel=useRef<HTMLDivElement>(null),expandController=useRef<AbortController|null>(null);
 const [nodes,setNodes]=useState<Record<string,Node>>(bundle.graphSnapshot?.nodes||{}),[transfers,setTransfers]=useState<Transfer[]>(bundle.graphSnapshot?.transfers||[]),[selected,setSelected]=useState(canonical),[edgeId,setEdgeId]=useState(''),[expanded,setExpanded]=useState<string[]>(bundle.graphSnapshot?.expanded||[]),[busy,setBusy]=useState(''),[error,setError]=useState(''),[warnings,setWarnings]=useState<string[]>([]),[zoom,setZoom]=useState<number>(bundle.graphSnapshot?.zoom||1),[pan,setPan]=useState(bundle.graphSnapshot?.pan||{x:0,y:0}),[nickname,setNickname]=useState(''),[filter,setFilter]=useState('all'),[focusText,setFocusText]=useState(''),[limits,setLimits]=useState(false);
 useEffect(()=>{const state={nodes,transfers,expanded,zoom,pan,pinned};stateRef.current=state;onSnapshot?.(state)},[nodes,transfers,expanded,zoom,pan,pinned]);
