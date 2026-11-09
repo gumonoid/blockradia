@@ -4,8 +4,8 @@ Search public blockchain addresses, inspect balances and transaction history, an
 
 This release preserves your theme across restarts, starts independently of other local services, and excludes tokens from native large-transfer results.
 
-- **Windows x64:** requires Windows 10 or later. Verify the publisher signature and open the portable EXE.
-- **macOS:** choose arm64 for Apple Silicon or x64 for Intel. Open the signed, notarized DMG and drag BlockRadia into Applications, or extract the ZIP.
-- **Linux x64:** verify the signed checksum manifest, then make the AppImage executable and run it. If FUSE is unavailable, extract the tar.gz archive and run the executable inside. The Chromium sandbox must be available.
+- **Windows x64:** requires Windows 10 or later. Open the portable EXE. Windows SmartScreen may warn that the publisher is unknown.
+- **macOS:** choose arm64 for Apple Silicon or x64 for Intel. Open the ad-hoc signed DMG and drag BlockRadia into Applications, or extract the ZIP.
+- **Linux x64:** make the AppImage executable and run it. If FUSE is unavailable, extract the tar.gz archive and run the executable inside. The Chromium sandbox must be available.
 
-Downloads are available without a GitHub account. Verify `SHA256SUMS.txt.sig` using the public key you obtained from the maintainer before checking the package hash. See [release verification instructions](https://github.com/gumonoid/blockradia/blob/main/docs/RELEASE_SIGNING.md).
+The Windows executable is unsigned and the macOS builds are ad-hoc signed without notarization. macOS Gatekeeper may require additional approval. SHA256SUMS.txt contains unsigned hashes for checking download integrity.

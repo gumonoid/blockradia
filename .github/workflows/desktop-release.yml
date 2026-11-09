@@ -1,6 +1,12 @@
 name: Build desktop packages
 on:
   workflow_dispatch:
+    inputs:
+      unsigned:
+        description: Publish without publisher or checksum signatures
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -52,8 +58,14 @@ jobs:
       - name: Package Linux
         if: matrix.platform == 'linux'
         run: npm --prefix desktop run package:linux
+      - name: Package Windows
+        if: matrix.platform == 'windows' && inputs.unsigned
+        run: npm --prefix desktop run package:win
+      - name: Package macOS
+        if: matrix.platform == 'macos' && inputs.unsigned
+        run: npm --prefix desktop run package:mac
       - name: Sign and verify Windows executable
-        if: matrix.platform == 'windows'
+        if: matrix.platform == 'windows' && !inputs.unsigned
         env:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
@@ -65,7 +77,7 @@ jobs:
           $signature = Get-AuthenticodeSignature -FilePath release/BlockRadia-Windows-x64.exe
           if ($signature.Status -ne 'Valid') { throw "Windows signature verification failed" }
       - name: Sign, notarize and verify macOS packages
-        if: matrix.platform == 'macos'
+        if: matrix.platform == 'macos' && !inputs.unsigned
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
@@ -131,9 +143,10 @@ jobs:
           pattern: blockradia-*
           path: release-assets
           merge-multiple: true
-      - name: Generate and sign checksums
+      - name: Generate checksums
         env:
-          RELEASE_CHECKSUM_PRIVATE_KEY: ${{ secrets.RELEASE_CHECKSUM_PRIVATE_KEY }}
+          ALLOW_UNSIGNED_CHECKSUMS: ${{ inputs.unsigned && '1' || '0' }}
+          RELEASE_CHECKSUM_PRIVATE_KEY: ${{ !inputs.unsigned && secrets.RELEASE_CHECKSUM_PRIVATE_KEY || '' }}
         run: node scripts/checksums.mjs release-assets
       - name: Publish verified desktop packages
         shell: bash
@@ -156,5 +169,6 @@ jobs:
           fi
           mapfile -t assets < <(awk '{print "release-assets/" $2}' release-assets/SHA256SUMS.txt)
           gh release create "$tag" --draft --target "$GITHUB_SHA" --title "BlockRadia ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
-          gh release upload "$tag" "${assets[@]}" release-assets/SHA256SUMS.txt release-assets/SHA256SUMS.txt.sig
+          if [ -f release-assets/SHA256SUMS.txt.sig ]; then assets+=(release-assets/SHA256SUMS.txt.sig); fi
+          gh release upload "$tag" "${assets[@]}" release-assets/SHA256SUMS.txt
           gh release edit "$tag" --draft=false --latest
