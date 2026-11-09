@@ -85,7 +85,7 @@ window.on('leave-full-screen',()=>{exitRequested=false;window.webContents.send('
 window.webContents.on('before-input-event',(event,input)=>{
 if(input.type!=='keyDown'||input.isAutoRepeat)return;
 
-if(input.key==='Escape'&&(window.isFullScreen()||htmlFullscreen)){event.preventDefault();exitFullscreen();}
+if(input.key==='Escape'&&!htmlFullscreen&&window.isFullScreen()){event.preventDefault();exitFullscreen();}
 else if(input.key==='F11'){event.preventDefault();if(window.isFullScreen()||htmlFullscreen)exitFullscreen();else window.setFullScreen(true);}
 });
 window.webContents.setWindowOpenHandler(({url})=>{const safe=externalURL(url);if(safe)shell.openExternal(safe).catch(()=>{});return {action:'deny'}});

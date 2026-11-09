@@ -108,7 +108,7 @@ try {
   }
   if (process.platform === 'darwin') {
     await enterGraphFullscreen();
-    await page.keyboard.press('Escape');
+    await exitFullscreen.press('Escape');
     await waitForGraphExit();
   }
   await page.keyboard.press('Escape');

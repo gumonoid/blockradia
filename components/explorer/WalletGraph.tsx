@@ -20,7 +20,21 @@ const {language,setLanguage}=useI18n();const w=useWords();
 const undoStack=useRef<any[]>([]),stateRef=useRef<any>(null),restoredSnapshot=useRef<any>(null),initialFit=useRef(false);const [undoCount,setUndoCount]=useState(0),[pinned,setPinned]=useState<string[]>(bundle.graphSnapshot?.pinned||[]);
 const [graphFullscreen,setGraphFullscreen]=useState(false);
 const fullscreenLabel=graphFullscreen?(language==='ru'?'Выйти из полноэкранного режима':language==='zh'?'退出全屏':'Exit fullscreen'):translate('Полный экран');
-useEffect(()=>{const changed=()=>setGraphFullscreen(document.fullscreenElement===panel.current);document.addEventListener('fullscreenchange',changed);return()=>document.removeEventListener('fullscreenchange',changed)},[]);
+useEffect(()=>{
+ const changed=()=>setGraphFullscreen(document.fullscreenElement===panel.current);
+ const escape=(event:KeyboardEvent)=>{
+  if(event.key!=='Escape'||!panel.current||document.fullscreenElement!==panel.current)return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if(!event.repeat)void toggleGraphFullscreen();
+ };
+ document.addEventListener('fullscreenchange',changed);
+ window.addEventListener('keydown',escape,true);
+ return()=>{
+  document.removeEventListener('fullscreenchange',changed);
+  window.removeEventListener('keydown',escape,true);
+ };
+},[]);
 async function toggleGraphFullscreen(){
  try{
   if(document.fullscreenElement===panel.current){
