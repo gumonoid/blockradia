@@ -26,15 +26,21 @@ try {
     chromiumSandbox:true,
     args:[`--user-data-dir=${profile}`],
   });
-  await app.context().route('**/api/explorer?**', async route => {
-    const params = new URL(route.request().url()).searchParams;
-    const address = params.get('q');
-    const action = params.get('action');
-    const payload = action === 'address' || action === 'balance'
-      ? {data:{hash:address, coin_balance:'100000000'}, canonical_address:address, transactions:[tx], transfers:[transfer]}
-      : {transactions:[], stats:{}, chart:[]};
-    await route.fulfill({json:payload});
-  });
+  // Electron serves the app origin internally. Stub provider I/O in the main
+  // process, so the renderer still exercises the real desktop request handler.
+  await app.evaluate((_, {tx,transfer}) => {
+    const fetch = globalThis.fetch;
+    globalThis.fetch = async (input,options) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname !== '/api/explorer') return fetch(input,options);
+      const address = url.searchParams.get('q');
+      const action = url.searchParams.get('action');
+      const payload = action === 'address' || action === 'balance'
+        ? {data:{hash:address, coin_balance:'100000000'}, canonical_address:address, transactions:[tx], transfers:[transfer]}
+        : {transactions:[], stats:{}, chart:[]};
+      return Response.json(payload);
+    };
+  }, {tx,transfer});
   const page = await app.firstWindow();
   page.setDefaultTimeout(30000);
   page.on('pageerror', error => console.error('Renderer:',error.message));
@@ -48,16 +54,11 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
   const search = page.locator('.search-box input');
   await search.fill(wallet);
-  const addressResult = page.waitForResponse(response => {
-    const url = new URL(response.url());
-    return url.pathname === '/api/explorer' && url.searchParams.get('action') === 'address'
-      && url.searchParams.get('q') === wallet;
-  });
   const graph = page.locator('.graph-panel');
   try {
     await page.locator('.search-submit').click();
-    assert.equal((await addressResult).status(), 200);
     await graph.locator('.graph-edge').first().waitFor({state:'attached'});
+    assert.equal(externalConnections,0);
   } catch (error) {
     console.error((await page.locator('body').innerText()).slice(0,2500));
     throw error;
