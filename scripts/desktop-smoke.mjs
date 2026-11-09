@@ -72,7 +72,13 @@ try {
   await fullscreen.click();
   await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
   const exitFullscreen = graph.getByRole('button', {name:'Exit fullscreen', exact:true});
-  await exitFullscreen.click();
+  if (process.platform === 'darwin') {
+    // A native Space transition can move the window between mouse-down and mouse-up.
+    await page.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible',null,{polling:100});
+    await exitFullscreen.press('Space');
+  } else {
+    await exitFullscreen.click();
+  }
   await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
 
   if (process.platform === 'win32') {
