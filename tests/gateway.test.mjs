@@ -1,4 +1,5 @@
 import test from 'node:test';
+import http from 'node:http';
 import assert from 'node:assert/strict';
 import {createGateway} from '../server/http.mjs';
 import {serviceURL,remoteExplorer} from '../lib/remote-explorer.ts';
@@ -41,4 +42,38 @@ test('global quota also limits requests from different client IP addresses',asyn
   assert.ok(Number(limited.headers.get('retry-after'))>0);
   assert.equal((await fetch(origin+'/healthz')).status,200);
  }finally{await new Promise(resolve=>server.close(resolve));}
+});
+
+
+test('a single client cannot consume all slots, and disconnecting cancels its work',async()=>{
+ let enter, markCancelled;
+ const entered=new Promise(resolve=>{enter=resolve;});
+ const cancelled=new Promise(resolve=>{markCancelled=resolve;});
+ const server=createGateway(async request=>{
+  if(new URL(request.url).searchParams.has('slow')){
+   enter();
+   await new Promise(resolve=>{
+    const abort=()=>{markCancelled();resolve();};
+    if(request.signal.aborted)abort();
+    else request.signal.addEventListener('abort',abort,{once:true});
+   });
+  }
+  return Response.json({ok:true});
+ },{maxActive:2,maxActivePerClient:1,trustProxy:true});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const url='http://127.0.0.1:'+server.address().port+'/api/explorer';
+ const firstClient={'x-forwarded-for':'192.0.2.1'},secondClient={'x-forwarded-for':'192.0.2.2'};
+ const slow=http.get(url+'?slow=1',{headers:firstClient});
+ slow.on('error',()=>{});
+ try{
+  await entered;
+  assert.equal((await fetch(url,{headers:firstClient})).status,429);
+  assert.equal((await fetch(url,{headers:secondClient})).status,200);
+  slow.destroy();
+  await cancelled;
+  assert.equal((await fetch(url,{headers:firstClient})).status,200);
+ }finally{
+  slow.destroy();
+  await new Promise(resolve=>server.close(resolve));
+ }
 });

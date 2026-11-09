@@ -29,9 +29,14 @@ export function importInvestigation(json: string, id: string) {
     const {id,hash,from,to,amount,symbol,asset,kind} = row;
     return {id,hash,from,to,amount,symbol,asset,kind,timestamp:date(row.timestamp)};
   });
-  const names = Object.fromEntries(Object.entries(project.names || {}).filter(([key,value]) =>
-    key.startsWith(project.network+':') && address(key.slice(project.network.length+1)) && shortText(value,50)
+  const aliases = new Set([project.root, ...Object.values(nodes).map(node => node.address)].map(value =>
+    ['ethereum','base','arbitrum','polygon','optimism'].includes(project.network) ? value.toLowerCase() : value
   ));
+  const names = Object.fromEntries([...aliases].flatMap(value => {
+    const key = project.network + ':' + value;
+    const nickname = project.names?.[key];
+    return shortText(nickname,50) ? [[key,nickname]] : [];
+  }));
   const validNodeIds = (v:unknown) => Array.isArray(v) ? v.filter(key=>address(key)&&Object.hasOwn(nodes,key)).slice(0,180) : [];
   const snapshot = project.bundle;
   const transactions = (Array.isArray(snapshot?.transactions)?snapshot.transactions:[]).slice(0,100).flatMap((tx:any)=>{
