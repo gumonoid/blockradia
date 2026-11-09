@@ -1,7 +1,7 @@
 import http from 'node:http';
 
-export function createGateway(handler,{limit=60,maxActive=16,globalLimit=600,trustProxy=false}={}){
- const clients=new Map();let active=0,remaining=globalLimit,resetAt=0;
+export function createGateway(handler,{limit=60,maxActive=16,maxActivePerClient=4,globalLimit=600,trustProxy=false}={}){
+ const clients=new Map(),activeClients=new Map();let active=0,remaining=globalLimit,resetAt=0;
  const cleanup=setInterval(()=>{const now=Date.now();for(const [ip,item] of clients)if(item.reset<=now)clients.delete(ip);},60000);cleanup.unref();
  const server=http.createServer(async(req,res)=>{
   const send=(status,body,headers={})=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',...headers});res.end(JSON.stringify(body));};
@@ -13,7 +13,8 @@ export function createGateway(handler,{limit=60,maxActive=16,globalLimit=600,tru
   // Enable only behind a proxy that overwrites the forwarded address.
   const ip=trustProxy?String(req.headers['x-forwarded-for']||req.socket.remoteAddress).split(',').at(-1).trim():req.socket.remoteAddress;
   const now=Date.now();let client=clients.get(ip);if(!client||client.reset<=now){if(clients.size>=10000){send(503,{error:'Сервер занят. Повторите позже.'});return;}client={count:0,reset:now+60000};clients.set(ip,client);}
-  if(++client.count>limit||active>=maxActive){send(429,{error:'Сервер занят. Повторите запрос через минуту.'},{'Retry-After':'60'});return;}
+  const clientActive=activeClients.get(ip)||0;
+  if(++client.count>limit||clientActive>=maxActivePerClient||active>=maxActive){send(429,{error:'Сервер занят. Повторите запрос через минуту.'},{'Retry-After':'60'});return;}
   if(now>=resetAt){remaining=globalLimit;resetAt=now+60000;}
   if(remaining<=0){
    send(429,{error:'The shared API has reached its request limit. Try again shortly.'},{'Retry-After':String(Math.ceil((resetAt-now)/1000))});
@@ -21,8 +22,18 @@ export function createGateway(handler,{limit=60,maxActive=16,globalLimit=600,tru
   }
   remaining--;
   active++;
-  try{const response=await handler(new Request(url));const body=await response.text();if(!res.destroyed){res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(body);}}
-  catch{if(!res.destroyed)send(502,{error:'Источник данных временно недоступен.'});}finally{active--;}
+  activeClients.set(ip,clientActive+1);
+  const controller=new AbortController();
+  const disconnect=()=>{if(!res.writableFinished)controller.abort();};
+  res.once('close',disconnect);
+  if(res.destroyed)disconnect();
+  try{const response=await handler(new Request(url,{signal:controller.signal}));const body=await response.text();if(!res.destroyed){res.writeHead(response.status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(body);}}
+  catch{if(!res.destroyed)send(502,{error:'Источник данных временно недоступен.'});}finally{
+   res.off('close',disconnect);
+   active--;
+   const count=activeClients.get(ip)-1;
+   if(count)activeClients.set(ip,count);else activeClients.delete(ip);
+  }
  });
  server.requestTimeout=10000;server.headersTimeout=10000;server.keepAliveTimeout=5000;server.on('close',()=>clearInterval(cleanup));return server;
 }

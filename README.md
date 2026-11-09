@@ -31,7 +31,7 @@ The **latest release** is available for Windows, macOS, and Linux. Sign in to Gi
 2. **macOS** — open the DMG and drag BlockRadia into Applications, or extract the ZIP. Choose Apple Silicon or Intel to match your Mac.
 3. **Linux** — mark the AppImage executable and run it, or extract the tar.gz package.
 
-Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. The Windows EXE is unsigned, and the macOS builds use ad-hoc signing.
+Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. For releases after v1.1.4, verify the publisher signature or the signed checksum manifest before running a package. The v1.1.4 Windows EXE is unsigned and its macOS builds use ad-hoc signing. [Download verification](docs/RELEASE_SIGNING.md)
 
 ## Features
 
@@ -164,7 +164,7 @@ desktop/
   main.cjs                    Electron window and loopback HTTP service
   build.mjs                   UI build and server adapter compilation
   ui/                         React desktop entry point
-scripts/checksums.mjs          Release completeness and SHA-256 checks
+scripts/checksums.mjs          Signed SHA-256 release manifest
 tests/                        Adapter and timeout regression tests
 .github/workflows/             Cross-platform build and release pipeline
 ```

@@ -1,14 +1,6 @@
 name: Build desktop packages
 on:
   workflow_dispatch:
-    inputs:
-      reuse_run:
-        description: Optional completed run whose Windows and Linux artifacts should be reused
-        type: string
-        required: false
-        default: ''
-  push:
-    tags: ['v*']
 permissions:
   contents: read
 concurrency:
@@ -16,12 +8,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Require fresh packages for signed releases
-        if: vars.BLOCKRADIA_SIGN_RELEASES == 'true' && inputs.reuse_run != ''
-        run: exit 1
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -36,7 +26,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(inputs.reuse_run && '[{"os":"macos-15-intel","platform":"macos","command":"package:mac"}]' || '[{"os":"windows-latest","platform":"windows","command":"package:win"},{"os":"macos-15-intel","platform":"macos","command":"package:mac"},{"os":"ubuntu-latest","platform":"linux","command":"package:linux"}]') }}
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: macos-15-intel
+            platform: macos
+          - os: ubuntu-latest
+            platform: linux
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     env:
@@ -53,11 +49,11 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm ci --prefix desktop --no-audit --no-fund
       - run: npm run build
-      - name: Package ${{ matrix.platform }}
-        if: vars.BLOCKRADIA_SIGN_RELEASES != 'true' || matrix.platform == 'linux'
-        run: npm --prefix desktop run ${{ matrix.command }}
+      - name: Package Linux
+        if: matrix.platform == 'linux'
+        run: npm --prefix desktop run package:linux
       - name: Sign and verify Windows executable
-        if: vars.BLOCKRADIA_SIGN_RELEASES == 'true' && matrix.platform == 'windows'
+        if: matrix.platform == 'windows'
         env:
           WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
@@ -69,7 +65,7 @@ jobs:
           $signature = Get-AuthenticodeSignature -FilePath release/BlockRadia-Windows-x64.exe
           if ($signature.Status -ne 'Valid') { throw "Windows signature verification failed" }
       - name: Sign, notarize and verify macOS packages
-        if: vars.BLOCKRADIA_SIGN_RELEASES == 'true' && matrix.platform == 'macos'
+        if: matrix.platform == 'macos'
         env:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
@@ -122,7 +118,6 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
-      actions: read
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
@@ -136,32 +131,30 @@ jobs:
           pattern: blockradia-*
           path: release-assets
           merge-multiple: true
-      - name: Reuse completed Windows and Linux packages
-        if: ${{ inputs.reuse_run }}
+      - name: Generate and sign checksums
         env:
-          REUSE_RUN: ${{ inputs.reuse_run }}
-        shell: bash
-        run: |
-          [[ "$REUSE_RUN" =~ ^[0-9]+$ ]] || exit 1
-          reuse_sha=$(gh api "repos/$GH_REPO/actions/runs/$REUSE_RUN" --jq '.head_sha')
-          [[ "$reuse_sha" =~ ^[0-9a-f]{40}$ ]] || exit 1
-          git fetch --no-tags origin "$reuse_sha"
-          git diff --exit-code "$reuse_sha" HEAD -- app components lib desktop package.json package-lock.json tsconfig.json
-          gh run download "$REUSE_RUN" --name blockradia-windows --dir release-assets
-          gh run download "$REUSE_RUN" --name blockradia-linux --dir release-assets
-      - name: Verify all platforms and generate checksums
+          RELEASE_CHECKSUM_PRIVATE_KEY: ${{ secrets.RELEASE_CHECKSUM_PRIVATE_KEY }}
         run: node scripts/checksums.mjs release-assets
-      - name: Publish private repository release
+      - name: Publish verified desktop packages
         shell: bash
         run: |
           tag="v$(node -p "require('./package.json').version")"
-          existing=$(gh api "repos/$GH_REPO/releases/tags/$tag" --jq '.draft' 2>/dev/null || true)
-          if [ "$existing" = "false" ]; then
-            echo "Release $tag is already published; increase the package version before publishing again."
+          if [ "$tag" != "v$(node -p "require('./desktop/package.json').version")" ]; then
+            echo "The root and desktop versions must match."
             exit 1
           fi
-          if [ "$existing" != "true" ]; then
-            gh release create "$tag" --draft --target "$GITHUB_SHA" --title "BlockRadia ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
+          if gh release view "$tag" --repo "$GH_REPO" >/dev/null 2>&1; then
+            echo "Release $tag already exists. Use a new version or resolve the existing draft."
+            exit 1
           fi
-          gh release upload "$tag" release-assets/* --clobber
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "Tag $tag already exists. Use a new version."
+            exit 1
+          else
+            status=$?
+            if [ "$status" -ne 2 ]; then exit "$status"; fi
+          fi
+          mapfile -t assets < <(awk '{print "release-assets/" $2}' release-assets/SHA256SUMS.txt)
+          gh release create "$tag" --draft --target "$GITHUB_SHA" --title "BlockRadia ${tag#v} — Desktop" --notes-file docs/RELEASE_NOTES.md
+          gh release upload "$tag" "${assets[@]}" release-assets/SHA256SUMS.txt release-assets/SHA256SUMS.txt.sig
           gh release edit "$tag" --draft=false --latest
