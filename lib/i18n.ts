@@ -83,10 +83,12 @@ const messages:Record<string,{en:string;zh:string}>={
     "en": "Cream",
     "zh": "奶油色"
   },
-  "Серая": {
-    "en": "Gray",
-    "zh": "灰色"
-  },
+  "Оформление по HEX": {en:"HEX theme",zh:"HEX 主题"},
+  "Цвет задаёт оттенок фона, панелей и акцентов.": {en:"The color tints the background, panels, and accents.",zh:"该颜色用于背景、面板和强调色。"},
+  "Цвет HEX": {en:"HEX color",zh:"HEX 颜色"},
+  "Выбрать цвет": {en:"Choose color",zh:"选择颜色"},
+  "Применить HEX": {en:"Apply HEX theme",zh:"应用 HEX 主题"},
+  "Введите HEX из 3 или 6 символов, например #8159cc.": {en:"Enter a 3- or 6-digit HEX color, such as #8159cc.",zh:"输入 3 位或 6 位 HEX 颜色，例如 #8159cc。"},
   "Обзор": {
     "en": "Overview",
     "zh": "概览"
