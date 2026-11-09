@@ -26,9 +26,9 @@ for(const file of [path.join(__dirname,'../.env.local'),path.join(app.getPath('u
 try{const config=JSON.parse(await fs.readFile(path.join(__dirname,'service.json'),'utf8'));if(config.apiUrl)process.env.BLOCKRADIA_API_URL=config.apiUrl;}catch(error){if(error.code!=='ENOENT')throw Error('Unable to load service configuration');}
 const {GET}=await import(pathToFileURL(path.join(__dirname,'api.mjs')).href);
 const root=path.join(__dirname,'ui-dist');
-// Keep macOS fullscreen on the current desktop. AppKit's Spaces transition
-// can leave Chromium waiting for a resized frame when exiting HTML fullscreen.
-window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,simpleFullscreen:process.platform==='darwin',title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
+const isMac=process.platform==='darwin';
+// Resize the macOS window separately from Chromium's HTML fullscreen handshake.
+window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true,disableHtmlFullscreenWindowResize:isMac}});
 window.webContents.session.protocol.handle('http',createAppHandler(root,GET));
 window.webContents.session.setPermissionCheckHandler((contents,permission,requestingOrigin)=>allowPermission(contents,window.webContents,permission,requestingOrigin,origin));
 window.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(allowPermission(contents,window.webContents,permission,details.requestingUrl||contents.getURL(),origin)));
@@ -50,21 +50,36 @@ ipcMain.handle('watch-in-background',(event,enabled,language)=>{
 });
 window.on('close',event=>{if(tray&&!quitting){event.preventDefault();window.hide();}});
 
-let htmlFullscreen=false,exitRequested=false;
-const fullscreen=()=>window.isFullScreen()||htmlFullscreen;
+let htmlFullscreen=false,exitRequested=false,graphOwnsWindow=false;
+const fullscreen=()=>window.isFullScreen()||(isMac&&window.isSimpleFullScreen())||htmlFullscreen;
+function syncMacGraphWindow(){
+ if(!isMac)return;
+ setImmediate(()=>{
+  if(window.isDestroyed())return;
+  if(htmlFullscreen){
+   if(!graphOwnsWindow&&!window.isFullScreen()&&!window.isSimpleFullScreen()){
+    graphOwnsWindow=true;
+    window.setSimpleFullScreen(true);
+   }
+  }else if(graphOwnsWindow){
+   graphOwnsWindow=false;
+   window.setSimpleFullScreen(false);
+  }
+ });
+}
 ipcMain.handle('fullscreen-state',event=>trustedIPC(event,window.webContents,origin)?fullscreen():false);
 ipcMain.on('toggle-fullscreen',event=>{if(!trustedIPC(event,window.webContents,origin))return;if(fullscreen())exitFullscreen();else window.setFullScreen(true);});
 function exitFullscreen(){
  exitRequested=true;
  if(htmlFullscreen){
   window.webContents.executeJavaScript('document.fullscreenElement && document.exitFullscreen()').catch(()=>{if(!window.isDestroyed())window.setFullScreen(false);});
-  if(process.platform==='darwin')return; // Chromium exits the native Space after leaving HTML fullscreen.
+  if(isMac)return; // The HTML leave event restores any window expanded by the graph.
  }
  window.setFullScreen(false);
 }
 ipcMain.on('exit-fullscreen',event=>{if(trustedIPC(event,window.webContents,origin))exitFullscreen();});
-window.on('enter-html-full-screen',()=>{htmlFullscreen=true;window.webContents.send('fullscreen-state',true);if(exitRequested)exitFullscreen();});
-window.on('leave-html-full-screen',()=>{htmlFullscreen=false;exitRequested=false;window.webContents.send('fullscreen-state',fullscreen())});
+window.on('enter-html-full-screen',()=>{htmlFullscreen=true;syncMacGraphWindow();window.webContents.send('fullscreen-state',true);if(exitRequested)exitFullscreen();});
+window.on('leave-html-full-screen',()=>{htmlFullscreen=false;exitRequested=false;syncMacGraphWindow();window.webContents.send('fullscreen-state',window.isFullScreen());});
 window.on('enter-full-screen',()=>{window.webContents.send('fullscreen-state',true);if(exitRequested)exitFullscreen();});
 window.on('leave-full-screen',()=>{exitRequested=false;window.webContents.send('fullscreen-state',htmlFullscreen)});
 window.webContents.on('before-input-event',(event,input)=>{

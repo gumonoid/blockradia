@@ -70,13 +70,24 @@ try {
 
   const fullscreen = graph.getByRole('button', {name:'Fullscreen', exact:true});
   const exitFullscreen = graph.getByRole('button', {name:'Exit fullscreen', exact:true});
+  const waitForMacWindow = async (active) => {
+    if (process.platform !== 'darwin') return;
+    for (let i=0;i<100;i++) {
+      const state=await app.evaluate(({BrowserWindow}) => BrowserWindow.getAllWindows()[0].isSimpleFullScreen());
+      if(state===active)return;
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    assert.fail('The macOS window did not '+(active?'enter':'leave')+' fullscreen');
+  };
   const enterGraphFullscreen = async () => {
     await fullscreen.click();
     await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
+    await waitForMacWindow(true);
   };
   const waitForGraphExit = async () => {
     await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
     await fullscreen.waitFor();
+    await waitForMacWindow(false);
   };
   await enterGraphFullscreen();
   await exitFullscreen.click();
