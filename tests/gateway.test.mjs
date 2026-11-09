@@ -25,6 +25,21 @@ test('remote failures become a generic error without provider secrets',async()=>
  const original=globalThis.fetch;globalThis.fetch=async()=>{throw Error('secret-provider-key')};
  try{const result=await remoteExplorer(new Request('http://desktop/api/explorer'),'https://api.example.com');assert.equal(result.status,503);assert(!(await result.text()).includes('secret-provider-key'));}finally{globalThis.fetch=original;}
 });
+test('foreign web origins and invalid forwarding headers cannot evade the shared API client quota',async()=>{
+ let calls=0;
+ const server=createGateway(async()=>{calls++;return Response.json({ok:true})},{limit:1,trustProxy:true});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ const url='http://127.0.0.1:'+server.address().port+'/api/explorer';
+ try{
+  for(const headers of [{origin:'https://attacker.invalid'},{origin:'null'},{'sec-fetch-site':'cross-site'},{'sec-fetch-site':'same-site'}]){
+   assert.equal((await fetch(url,{headers})).status,403);
+  }
+  assert.equal(calls,0);
+  assert.equal((await fetch(url,{headers:{'x-forwarded-for':'malformed'}})).status,200);
+  assert.equal((await fetch(url,{headers:{'x-forwarded-for':'another-malformed'}})).status,429);
+  assert.equal(calls,1);
+ }finally{await new Promise(resolve=>server.close(resolve));}
+});
 test('concurrency overload is rejected while existing work completes',async()=>{
  let started,finish;const entered=new Promise(resolve=>started=resolve),pending=new Promise(resolve=>finish=resolve);
  const server=createGateway(async()=>{started();await pending;return Response.json({ok:true})},{maxActive:1});

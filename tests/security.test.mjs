@@ -34,6 +34,38 @@ test('external links cannot launch non-HTTPS or credential/UNC URLs',()=>{for(co
 test('inherited JavaScript property names are rejected as networks without contacting providers',async()=>{const old=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;throw Error('Unexpected provider call')};try{for(const network of ['__proto__','constructor','toString'])for(const action of ['overview','history']){const r=await localExplorer(new Request('http://local/api/explorer?'+new URLSearchParams({network,action,start:'1',end:'2'})));assert.equal(r.status,400)}assert.equal(calls,0)}finally{globalThis.fetch=old}});
 test('CSV formula payloads in token metadata stay text when exported',()=>{for(const payload of ['=1+1','+1+1','-1+1','@SUM(1,2)','  =1+1','\t=1+1','\r=1+1'])assert(csvCell(payload).startsWith('"\''));assert.equal(csvCell('USDT'),'"USDT"');assert.equal(csvCell('a"b'),'"a""b"');assert.equal(csvCell(123),'"123"');});
 
+test('credential-bearing provider requests reject redirects and never echo upstream diagnostics',async()=>{
+ const original=globalThis.fetch,previousKey=process.env.BLOCKSCOUT_API_KEY;
+ const key='fixture/secret+key',encoded=encodeURIComponent(key);
+ process.env.BLOCKSCOUT_API_KEY=key;
+ try{
+  const responses=[
+   ()=>Response.json({error:{message:'Invalid credential '+encoded}}),
+   ()=>new Response('not JSON '+key),
+   ()=>{throw Error('Unexpected error with '+key);}
+  ];
+  for(const [i,respond] of responses.entries()){
+   const requests=[];
+   globalThis.fetch=async (url,options)=>{
+    const target=new URL(url);
+    requests.push({target,redirect:options.redirect});
+    return target.hostname==='api.blockscout.com'?respond():Response.json({error:{message:'RPC offline'}});
+   };
+   const address='0x'+String(i+1).repeat(40);
+   const response=await localExplorer(new Request('http://local/api/explorer?network=ethereum&action=balance&q='+address));
+   assert.equal(response.status,502);
+   const body=await response.text();
+   assert(!body.includes(key)&&!body.includes(encoded));
+   assert.equal(requests.length,2);
+   assert.equal(requests[1].target.searchParams.get('apikey'),key);
+   assert.equal(requests[1].redirect,'error');
+  }
+ }finally{
+  globalThis.fetch=original;
+  if(previousKey===undefined)delete process.env.BLOCKSCOUT_API_KEY;
+  else process.env.BLOCKSCOUT_API_KEY=previousKey;
+ }
+});
 
 test('market requests that differ only in unused query parameters share a cache entry',async()=>{
  const original=globalThis.fetch;

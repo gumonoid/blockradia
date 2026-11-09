@@ -2,6 +2,21 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {localExplorer} from '../app/api/explorer/route.ts';
 import {largeTransfers} from '../lib/large-transfers.ts';
+test('TON balance falls back to the RPC when indexed account state is unavailable',async()=>{
+ const original=globalThis.fetch,address='0:'+'5'.repeat(64),seen=[];
+ globalThis.fetch=async input=>{
+  const url=new URL(input);seen.push(url.pathname);
+  assert.equal(url.searchParams.get('address'),address);
+  if(url.pathname.endsWith('/accountStates'))return new Response('{}',{status:503});
+  return Response.json({ok:true,result:'9007199254740993'});
+ };
+ try{
+  const response=await localExplorer(new Request('http://local/api/explorer?network=ton&action=balance&q='+address));
+  assert.equal(response.status,200);
+  assert.equal((await response.json()).data.coin_balance,'9007199254740993');
+  assert.deepEqual(seen,['/api/v3/accountStates','/api/v2/getAddressBalance']);
+ }finally{globalThis.fetch=original;}
+});
 test('TON external wallet sends expose the largest real message amount and counterparty',async()=>{
  const original=globalThis.fetch,from='0:'+'1'.repeat(64),to='0:'+'2'.repeat(64),hash='a'.repeat(64);
  globalThis.fetch=async()=>Response.json({transactions:[{hash,account:from,now:1793730000,description:{aborted:false},in_msg:{destination:from,value:'0'},out_msgs:[{hash:'out-small',source:from,destination:to,value:'10000000000'},{hash:'out-large',source:from,destination:to,value:'600000000000'}]}]});

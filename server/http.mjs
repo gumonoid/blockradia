@@ -1,4 +1,5 @@
 import http from 'node:http';
+import {isIP} from 'node:net';
 
 export function createGateway(handler,{limit=60,maxActive=16,maxActivePerClient=4,globalLimit=600,trustProxy=false}={}){
  const clients=new Map(),activeClients=new Map();let active=0,remaining=globalLimit,resetAt=0;
@@ -10,8 +11,13 @@ export function createGateway(handler,{limit=60,maxActive=16,maxActivePerClient=
   if(url.pathname==='/healthz'){send(200,{status:'ok'});return;}
   if(url.pathname!=='/api/explorer'){send(404,{error:'Not found'});return;}
   if(req.url.length>4096){send(414,{error:'Request too long'});return;}
+  // The desktop and development proxy call this API from Node, not a web origin.
+  if(req.headers.origin!==undefined||['cross-site','same-site'].includes(req.headers['sec-fetch-site'])){
+   send(403,{error:'Cross-origin requests are not allowed'});return;
+  }
   // Enable only behind a proxy that overwrites the forwarded address.
-  const ip=trustProxy?String(req.headers['x-forwarded-for']||req.socket.remoteAddress).split(',').at(-1).trim():req.socket.remoteAddress;
+  const forwarded=trustProxy?String(req.headers['x-forwarded-for']||'').split(',').at(-1).trim():'';
+  const ip=isIP(forwarded)?forwarded:req.socket.remoteAddress;
   const now=Date.now();let client=clients.get(ip);if(!client||client.reset<=now){if(clients.size>=10000){send(503,{error:'Сервер занят. Повторите позже.'});return;}client={count:0,reset:now+60000};clients.set(ip,client);}
   const clientActive=activeClients.get(ip)||0;
   if(++client.count>limit||clientActive>=maxActivePerClient||active>=maxActive){send(429,{error:'Сервер занят. Повторите запрос через минуту.'},{'Retry-After':'60'});return;}
