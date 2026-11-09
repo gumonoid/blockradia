@@ -62,6 +62,8 @@ Base and Polygon wallet history uses Alchemy through the shared server. End user
 
 Date search returns up to 100 rows per selected range. Provider availability and retention can reduce coverage. The transaction table displays up to 100 rows, even when the graph loads additional token or internal transfers.
 
+The pending feed shows unconfirmed Bitcoin transactions from the mempool. For other networks, the pending filter applies only to transactions already loaded.
+
 Kraken supplies USD candles for every price period. DefiLlama provides a line-chart fallback. The app uses the shared API for most requests and public providers directly for TRON and Solana date-range history. Activity charts identify whether they show indexed network statistics, RPC performance intervals, or only the downloaded transaction sample.
 
 ### What the graph means
