@@ -25,8 +25,8 @@ async function toggleGraphFullscreen(){
  try{
   if(document.fullscreenElement===panel.current){
    const controls=(window as Window & {blockradiaWindow?:{exitFullscreen:()=>void}}).blockradiaWindow;
-   if(controls)controls.exitFullscreen();
-   else await document.exitFullscreen();
+   try{await document.exitFullscreen();}
+   catch(error){if(controls)controls.exitFullscreen();else throw error;}
   }else await panel.current?.requestFullscreen();
  }catch(e){setError((e as Error).message)}
 }

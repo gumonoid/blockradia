@@ -51,10 +51,13 @@ window.on('close',event=>{if(tray&&!quitting){event.preventDefault();window.hide
 let htmlFullscreen=false,exitRequested=false;
 const fullscreen=()=>window.isFullScreen()||htmlFullscreen;
 ipcMain.handle('fullscreen-state',event=>trustedIPC(event,window.webContents,origin)?fullscreen():false);
-ipcMain.on('toggle-fullscreen',event=>{if(!trustedIPC(event,window.webContents,origin))return;if(htmlFullscreen)window.webContents.executeJavaScript('document.exitFullscreen().catch(()=>{})');window.setFullScreen(!fullscreen());});
+ipcMain.on('toggle-fullscreen',event=>{if(!trustedIPC(event,window.webContents,origin))return;if(fullscreen())exitFullscreen();else window.setFullScreen(true);});
 function exitFullscreen(){
  exitRequested=true;
- if(htmlFullscreen)window.webContents.executeJavaScript('document.fullscreenElement && document.exitFullscreen().catch(()=>{})').catch(()=>{});
+ if(htmlFullscreen){
+  window.webContents.executeJavaScript('document.fullscreenElement && document.exitFullscreen()').catch(()=>{if(!window.isDestroyed())window.setFullScreen(false);});
+  if(process.platform==='darwin')return; // Chromium exits the native Space after leaving HTML fullscreen.
+ }
  window.setFullScreen(false);
 }
 ipcMain.on('exit-fullscreen',event=>{if(trustedIPC(event,window.webContents,origin))exitFullscreen();});
