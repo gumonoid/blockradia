@@ -649,9 +649,9 @@ const messages:Record<string,{en:string;zh:string}>={
     "en": "Online sources",
     "zh": "在线数据源"
   },
-  "Цены и история цены — DefiLlama Coins. EVM — Blockscout / публичные RPC; TRON — TronGrid; Solana — Mainnet RPC; TON — TON Center v3.": {
-    "en": "Prices and price history: DefiLlama Coins. EVM: Blockscout / public RPC; TRON: TronGrid; Solana: Mainnet RPC / PublicNode; TON: TON Center v3.",
-    "zh": "价格及历史价格：DefiLlama Coins。EVM：Blockscout / 公开 RPC；TRON：TronGrid；Solana：Mainnet RPC / PublicNode；TON：TON Center v3。"
+  "Цены и история цены — Kraken / DefiLlama. EVM — Blockscout / Alchemy / публичные RPC; TRON — TronGrid; Solana — Mainnet RPC; GRAM(TON) — TON Center.": {
+    "en": "Prices and price history: Kraken / DefiLlama. EVM: Blockscout / Alchemy / public RPC; TRON: TronGrid; Solana: Mainnet RPC / PublicNode; GRAM(TON): TON Center.",
+    "zh": "价格及历史价格：Kraken / DefiLlama。EVM：Blockscout / Alchemy / 公开 RPC；TRON：TronGrid；Solana：Mainnet RPC / PublicNode；GRAM(TON)：TON Center。"
   },
   "История и граф используют реальные переводы, возвращённые источниками. Объём выборки указан под графом. Никнеймы — ваши локальные подписи, а не установленные владельцы. Граф не доказывает связь между владельцами кошельков.": {
     "en": "History and graphs use actual transfers returned by sources. Sample size appears below the graph. Nicknames are your local labels, not verified identities. The graph does not prove links between wallet owners.",

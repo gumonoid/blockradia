@@ -93,6 +93,7 @@ try {
   try {
     await page.locator('.search-submit').click();
     await graph.locator('.graph-edge').first().waitFor({state:'attached'});
+    assert.doesNotMatch(await graph.locator('.graph-coverage').innerText(),/\bundefined\b/);
     assert.equal(externalConnections,0);
   } catch (error) {
     console.error((await page.locator('body').innerText()).slice(0,2500));
