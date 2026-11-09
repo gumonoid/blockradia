@@ -81,6 +81,12 @@ try {
   await settings.click();
   assert.equal(await hex.inputValue(),'#11131c');
   await page.keyboard.press('Escape');
+  const tableTools = page.locator('.table-toolbox');
+  const filters = tableTools.getByRole('button',{name:'Filters',exact:true});
+  await filters.click();
+  await tableTools.getByRole('button',{name:'Custom period',exact:true}).click();
+  assert.equal(await tableTools.getByLabel('From',{exact:true}).evaluate(input=>input===document.activeElement),true);
+  await filters.click();
   const search = page.locator('.search-box input');
   await search.fill(wallet);
   const graph = page.locator('.graph-panel');

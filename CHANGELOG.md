@@ -4,6 +4,7 @@
 
 - Customize the theme with a HEX color or select one of six presets. Settings shows the active preset's HEX value.
 - Remove the keyboard shortcut badge from the search bar.
+- Focus the date field when choosing a custom period and translate history controls in all interface languages.
 - Improve wallet data recovery when TON Center or EVM indexers limit requests.
 - Protect the shared API against browser requests from other sites and remove sensitive provider diagnostics from public errors.
 - Verify theme persistence, wallet navigation, graph fullscreen and desktop startup in packaged builds.
