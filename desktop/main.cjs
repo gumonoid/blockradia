@@ -26,7 +26,9 @@ for(const file of [path.join(__dirname,'../.env.local'),path.join(app.getPath('u
 try{const config=JSON.parse(await fs.readFile(path.join(__dirname,'service.json'),'utf8'));if(config.apiUrl)process.env.BLOCKRADIA_API_URL=config.apiUrl;}catch(error){if(error.code!=='ENOENT')throw Error('Unable to load service configuration');}
 const {GET}=await import(pathToFileURL(path.join(__dirname,'api.mjs')).href);
 const root=path.join(__dirname,'ui-dist');
-window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
+// Keep macOS fullscreen on the current desktop. AppKit's Spaces transition
+// can leave Chromium waiting for a resized frame when exiting HTML fullscreen.
+window=new BrowserWindow({width:1440,height:1040,minWidth:480,minHeight:640,simpleFullscreen:process.platform==='darwin',title:'BlockRadia',icon:path.join(__dirname,'icon.png'),backgroundColor:'#f8f9fc',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
 window.webContents.session.protocol.handle('http',createAppHandler(root,GET));
 window.webContents.session.setPermissionCheckHandler((contents,permission,requestingOrigin)=>allowPermission(contents,window.webContents,permission,requestingOrigin,origin));
 window.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(allowPermission(contents,window.webContents,permission,details.requestingUrl||contents.getURL(),origin)));

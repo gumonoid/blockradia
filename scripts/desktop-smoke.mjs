@@ -69,17 +69,37 @@ try {
   await graph.locator('.inspector-address').filter({hasText:wallet}).waitFor();
 
   const fullscreen = graph.getByRole('button', {name:'Fullscreen', exact:true});
-  await fullscreen.click();
-  await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
   const exitFullscreen = graph.getByRole('button', {name:'Exit fullscreen', exact:true});
-  if (process.platform === 'darwin') {
-    // A native Space transition can move the window between mouse-down and mouse-up.
-    await page.waitForFunction(() => document.hasFocus() && document.visibilityState === 'visible',null,{polling:100});
-    await exitFullscreen.press('Space');
-  } else {
-    await exitFullscreen.click();
+  const enterGraphFullscreen = async () => {
+    await fullscreen.click();
+    await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
+  };
+  const waitForGraphExit = async () => {
+    await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
+    await fullscreen.waitFor();
+  };
+  await enterGraphFullscreen();
+  await exitFullscreen.click();
+  try {
+    await waitForGraphExit();
+  } catch (error) {
+    const renderer = await page.evaluate(() => ({
+      element:document.fullscreenElement?.className, visibility:document.visibilityState,
+      focused:document.hasFocus(),
+    }));
+    const native = await app.evaluate(({BrowserWindow}) => {
+      const window = BrowserWindow.getAllWindows()[0];
+      return {visible:window.isVisible(), nativeFullscreen:window.isFullScreen(),
+        simpleFullscreen:process.platform==='darwin'?window.isSimpleFullScreen():null};
+    });
+    console.error('Graph fullscreen did not close:',{renderer,native});
+    throw error;
   }
-  await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
+  if (process.platform === 'darwin') {
+    await enterGraphFullscreen();
+    await page.keyboard.press('Escape');
+    await waitForGraphExit();
+  }
 
   if (process.platform === 'win32') {
     await page.locator('.notification-bell').click();
