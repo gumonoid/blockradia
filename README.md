@@ -14,7 +14,7 @@ Explore nine networks, trace transfers in an interactive graph, and save your re
 
 ## Download
 
-The **latest release** is available for Windows, macOS, and Linux. Choose the package for your operating system and processor. GitHub sign-in is optional for release downloads.
+The **latest release** is available for Windows, macOS, and Linux. Choose the package for your operating system and processor. Sign in with a GitHub account that has access to this private repository.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
