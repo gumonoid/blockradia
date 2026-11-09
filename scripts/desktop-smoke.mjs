@@ -8,10 +8,11 @@ import {_electron as electron} from 'playwright';
 const executable = process.argv[2];
 assert(executable, 'Pass the unpacked BlockRadia executable path');
 const profile = await mkdtemp(join(tmpdir(), 'blockradia-smoke-'));
-const socket = createServer();
-await new Promise((done, reject) => socket.once('error', reject).listen(0, '127.0.0.1', done));
-const {port} = socket.address();
-await new Promise(done => socket.close(done));
+// Occupy the old loopback port throughout the test. Electron should still serve
+// the original app origin internally and never reach this server.
+let externalConnections = 0;
+const socket = createServer(connection => { externalConnections++; connection.destroy(); });
+await new Promise((done, reject) => socket.once('error', reject).listen(19237, '127.0.0.1', done));
 
 const wallet = '1BoatSLRHtKNngkdXEeobR76b53LETtpyT';
 const peer = '1BitcoinEaterAddressDontSendf59kuE';
@@ -22,7 +23,8 @@ let app;
 try {
   app = await electron.launch({
     executablePath:resolve(executable),
-    args:[`--user-data-dir=${profile}`, `--blockradia-port=${port}`],
+    chromiumSandbox:true,
+    args:[`--user-data-dir=${profile}`],
   });
   await app.context().route('**/api/explorer?**', async route => {
     const params = new URL(route.request().url()).searchParams;
@@ -37,6 +39,13 @@ try {
   page.setDefaultTimeout(30000);
   page.on('pageerror', error => console.error('Renderer:',error.message));
   await page.locator('.search-box input').waitFor();
+  assert.equal(new URL(page.url()).origin,'http://127.0.0.1:19237');
+  assert.equal(externalConnections,0,'The app must not connect to the process on the old port');
+  await page.locator('.sidebar-bottom button.nav-item').click();
+  await page.locator('.theme-picker .swatch-dark').click();
+  await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
+  await page.reload();
+  await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
   const search = page.locator('.search-box input');
   await search.fill(wallet);
   const addressResult = page.waitForResponse(response => {
@@ -83,5 +92,6 @@ try {
 
 } finally {
   await app?.close();
+  await new Promise(done => socket.close(done));
   await rm(profile, {recursive:true, force:true, maxRetries:3, retryDelay:200});
 }

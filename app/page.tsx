@@ -61,7 +61,14 @@ const [chartStyle,setChartStyle]=useState('line');
 const [feeQuote,setFeeQuote]=useState<FeeQuote|null>(null),[feesLoading,setFeesLoading]=useState(true),[feesError,setFeesError]=useState('');const feeRequestId=useRef(0);
 const navigation=useRef<{q:string;kind:string}[]>([]),currentLocation=useRef<{q:string;kind:string}|null>(null);const [canGoBack,setCanGoBack]=useState(false);
 function goBack(){const previous=navigation.current.pop();if(!previous)return;setCanGoBack(navigation.current.length>0);setQuery(previous.q);search(previous.q,previous.kind,searchMode,true);}
-useEffect(()=>{try{const saved=localStorage.getItem('blockradia-theme');if(saved&&themes.some(([id])=>id===saved))setTheme(saved)}catch{}},[]);
+useEffect(()=>{
+ try{
+  const raw=localStorage.getItem('blockradia-theme');
+  let saved=raw;
+  try{saved=JSON.parse(raw??'null')}catch{/* Read older plain-string preferences. */}
+  if(themes.some(([id])=>id===saved)&&saved)setTheme(saved);
+ }catch{}
+},[]);
 useEffect(()=>{document.documentElement.lang=language==='zh'?'zh-CN':language;document.documentElement.dataset.theme=theme;document.documentElement.style.colorScheme=['light','cream','gray'].includes(theme)?'light':'dark'},[theme,language]);
 function chooseTheme(value:string){setTheme(value);persist('blockradia-theme',value)}
 const input=useRef<HTMLInputElement>(null),requestId=useRef(0),marketId=useRef(0),searchId=useRef(0),pendingBookmark=useRef<any>(null),searchController=useRef<AbortController|null>(null),searchStarted=useRef(0);const chain=chains.find(c=>c.id===network)!;

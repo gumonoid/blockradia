@@ -14,7 +14,7 @@ Explore nine networks, trace transfers in an interactive graph, and save your re
 
 ## Download
 
-The **latest release** is available for Windows, macOS, and Linux. Sign in to GitHub with access to this private repository, then choose your platform.
+The **latest release** is available for Windows, macOS, and Linux. Choose the package for your operating system and processor. GitHub sign-in is optional for release downloads.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
@@ -31,7 +31,7 @@ The **latest release** is available for Windows, macOS, and Linux. Sign in to Gi
 2. **macOS** — open the DMG and drag BlockRadia into Applications, or extract the ZIP. Choose Apple Silicon or Intel to match your Mac.
 3. **Linux** — mark the AppImage executable and run it, or extract the tar.gz package.
 
-Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. For releases after v1.1.4, verify the publisher signature or the signed checksum manifest before running a package. The v1.1.4 Windows EXE is unsigned and its macOS builds use ad-hoc signing. [Download verification](docs/RELEASE_SIGNING.md)
+Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. The Windows package requires Windows 10 or later. Linux requires Chromium sandbox support, including unprivileged user namespaces for the AppImage launcher. For releases after v1.1.4, verify the publisher signature or the signed checksum manifest before running a package. The v1.1.4 Windows EXE is unsigned and its macOS builds use ad-hoc signing. [Download verification](docs/RELEASE_SIGNING.md)
 
 ## Features
 
@@ -108,7 +108,7 @@ New desktop builds use the shared API at `https://blockradia-api.onrender.com`, 
 ### Requirements
 
 - Node.js **22.13 or newer** and npm.
-- Git access to this private repository.
+- Git to clone the repository.
 - Windows, macOS, or Linux. Native platform packages are built on their corresponding operating systems.
 
 ```bash
@@ -161,7 +161,7 @@ components/explorer/
   HistoryPanel.tsx             Research history and nickname editor
 lib/explorer-client.ts         Client deadlines and cancellation
 desktop/
-  main.cjs                    Electron window and loopback HTTP service
+  main.cjs                    Electron window and internal request routing
   build.mjs                   UI build and server adapter compilation
   ui/                         React desktop entry point
 scripts/checksums.mjs          Signed SHA-256 release manifest

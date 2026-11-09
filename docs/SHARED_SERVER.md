@@ -1,6 +1,6 @@
 # Shared BlockRadia API
 
-The desktop application keeps its loopback API and forwards queries to `https://blockradia-api.onrender.com` by default. Provider keys stay on that service. Users need no provider accounts or keys. Set `BLOCKRADIA_API_URL` at build time to override the origin, or set it to `direct` to build a standalone direct-provider desktop package.
+The desktop application handles explorer requests inside Electron and forwards queries to `https://blockradia-api.onrender.com` by default. Provider keys stay on that service. Users need no provider accounts or keys. Set `BLOCKRADIA_API_URL` at build time to override the origin, or set it to `direct` to build a standalone direct-provider desktop package.
 
 ## Deploy on Render
 

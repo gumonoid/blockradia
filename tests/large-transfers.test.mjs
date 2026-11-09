@@ -6,7 +6,7 @@ for(const [network,rule] of Object.entries(largeTransferRules)){
   const threshold=BigInt(rule.minimum.replace('.',''))*10n**BigInt(rule.decimals-(rule.minimum.split('.')[1]?.length||0));
   const rows=[{value:String(threshold-1n)},{value:String(threshold)},{value:String(threshold+1n)},{value:String(threshold*2n)}];
   assert.deepEqual(largeTransfers(network,rows),[rows[3],rows[2]]);
-  assert.deepEqual(largeTransfers(network,[{value:String(threshold*2n),token_amount:'999999999999',token_symbol:'USDT'}]),[]);
+  assert.deepEqual(largeTransfers(network,[{value:String(threshold*2n),token_amount:'999999999999',token_symbol:rule.symbol}]),[]);
  });
 }
 test('unknown amounts are excluded and TON follows its configured threshold',()=>{
