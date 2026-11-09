@@ -33,11 +33,11 @@ jobs:
             build: --win portable --x64
           - os: macos-15
             platform: mac-arm64
-            build: --mac --arm64
+            build: --mac dmg zip --arm64
             arch: arm64
           - os: macos-15-intel
             platform: mac-x64
-            build: --mac --x64
+            build: --mac dmg zip --x64
             arch: x64
           - os: ubuntu-22.04
             platform: linux-x64

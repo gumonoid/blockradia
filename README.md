@@ -179,9 +179,9 @@ Maintainers can run it from **Actions → Build desktop packages → Run workflo
 
 - **Read-only:** no private keys, wallet signatures, or fund transfers are used.
 - **Local annotations:** history, bookmarks, and nicknames are stored in the application's local profile. Sharing exports is an explicit action.
-- **Internet lookups:** searched public addresses are sent to the corresponding blockchain API providers. Market quotes use Kraken and DefiLlama.
+- **Internet lookups:** the default desktop build sends public addresses and transaction hashes to the shared BlockRadia API and the blockchain providers that handle the lookup. Some requests go directly to a provider. Market quotes use Kraken and DefiLlama.
 - **Isolated desktop window:** Node.js access is disabled in the renderer, with sandbox and context isolation enabled.
-- **Local service:** the embedded API binds only to `127.0.0.1:19237`. It is not a public web service.
+- **Local app origin:** Electron handles `http://127.0.0.1:19237` internally without opening a listening port.
 
 ---
 
