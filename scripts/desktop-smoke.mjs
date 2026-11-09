@@ -111,6 +111,8 @@ try {
     await page.keyboard.press('Escape');
     await waitForGraphExit();
   }
+  await page.keyboard.press('Escape');
+  await graph.locator('.inspector-address').filter({hasText:wallet}).waitFor();
 
   if (process.platform === 'win32') {
     await page.locator('.notification-bell').click();
