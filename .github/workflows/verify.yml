@@ -23,8 +23,27 @@ jobs:
       - run: npm test
       - run: npm run build
   desktop-smoke:
-    runs-on: windows-latest
-    timeout-minutes: 15
+    name: Desktop package (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows-x64
+            build: --win portable --x64
+          - os: macos-15
+            platform: mac-arm64
+            build: --mac --arm64
+            arch: arm64
+          - os: macos-15-intel
+            platform: mac-x64
+            build: --mac --x64
+            arch: x64
+          - os: ubuntu-22.04
+            platform: linux-x64
+            build: --linux --x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
     env:
       CSC_IDENTITY_AUTO_DISCOVERY: 'false'
     steps:
@@ -40,5 +59,70 @@ jobs:
       - run: npm ci --prefix desktop --no-audit --no-fund
       - run: npm run build
       - working-directory: desktop
-        run: npx --no-install electron-builder --dir --win --x64 --publish never
-      - run: node scripts/desktop-smoke.mjs release/win-unpacked/BlockRadia.exe
+        run: npx --no-install electron-builder ${{ matrix.build }} --publish never
+      - name: Verify Windows application
+        if: runner.os == 'Windows'
+        run: node scripts/desktop-smoke.mjs release/win-unpacked/BlockRadia.exe
+      - name: Open the Windows portable download
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $profile = Join-Path $env:RUNNER_TEMP "blockradia-portable-profile"
+          $launcher = Start-Process -FilePath (Resolve-Path "release/BlockRadia-Windows-x64.exe") -ArgumentList "--user-data-dir=`"$profile`"" -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(60)
+            do {
+              $window = Get-Process -Name BlockRadia -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -eq "BlockRadia" }
+              if ($window) { break }
+              Start-Sleep -Milliseconds 500
+            } while ((Get-Date) -lt $deadline)
+            if (!$window) { throw "Portable download did not open the BlockRadia window" }
+          } finally {
+            Get-Process -Name BlockRadia -ErrorAction SilentlyContinue | Stop-Process -Force
+            if (!$launcher.HasExited) { Stop-Process -Id $launcher.Id -Force }
+          }
+      - name: Open the macOS DMG and ZIP downloads
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          volume=$(mktemp -d)
+          archive=$(mktemp -d)
+          hdiutil attach "release/BlockRadia-macOS-$ARCH.dmg" -mountpoint "$volume" -nobrowse -readonly
+          trap 'hdiutil detach "$volume"; rm -rf "$archive"' EXIT
+          node scripts/desktop-smoke.mjs "$volume/BlockRadia.app/Contents/MacOS/BlockRadia"
+          ditto -x -k "release/BlockRadia-macOS-$ARCH.zip" "$archive"
+          node scripts/desktop-smoke.mjs "$archive/BlockRadia.app/Contents/MacOS/BlockRadia"
+      - name: Open the Linux AppImage and tar archive
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          temp=$(mktemp -d)
+          (
+            cd "$temp"
+            "$GITHUB_WORKSPACE/release/BlockRadia-Linux-x86_64.AppImage" --appimage-extract >/dev/null
+          )
+          if grep -E '^Exec=.*--no-sandbox' "$temp"/squashfs-root/*.desktop; then
+            echo "The packaged desktop entry disables the Chromium sandbox."
+            exit 1
+          fi
+          xvfb-run -a node scripts/desktop-smoke.mjs "$temp/squashfs-root/AppRun"
+          tar -xzf release/BlockRadia-Linux-x64.tar.gz -C "$temp"
+          executable=$(find "$temp/BlockRadia-Linux-x64" -type f -name blockradia-desktop -print -quit)
+          test -n "$executable"
+          xvfb-run -a node scripts/desktop-smoke.mjs "$executable"
+      - name: Save the tested packages
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: blockradia-test-${{ matrix.platform }}
+          path: |
+            release/BlockRadia-*.exe
+            release/BlockRadia-*.dmg
+            release/BlockRadia-*.zip
+            release/BlockRadia-*.AppImage
+            release/BlockRadia-*.tar.gz
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error

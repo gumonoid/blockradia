@@ -8,10 +8,11 @@ import {_electron as electron} from 'playwright';
 const executable = process.argv[2];
 assert(executable, 'Pass the unpacked BlockRadia executable path');
 const profile = await mkdtemp(join(tmpdir(), 'blockradia-smoke-'));
-const socket = createServer();
-await new Promise((done, reject) => socket.once('error', reject).listen(0, '127.0.0.1', done));
-const {port} = socket.address();
-await new Promise(done => socket.close(done));
+// Occupy the old loopback port throughout the test. Electron should still serve
+// the original app origin internally and never reach this server.
+let externalConnections = 0;
+const socket = createServer(connection => { externalConnections++; connection.destroy(); });
+await new Promise((done, reject) => socket.once('error', reject).listen(19237, '127.0.0.1', done));
 
 const wallet = '1BoatSLRHtKNngkdXEeobR76b53LETtpyT';
 const peer = '1BitcoinEaterAddressDontSendf59kuE';
@@ -22,33 +23,42 @@ let app;
 try {
   app = await electron.launch({
     executablePath:resolve(executable),
-    args:[`--user-data-dir=${profile}`, `--blockradia-port=${port}`],
+    chromiumSandbox:true,
+    args:[`--user-data-dir=${profile}`],
   });
-  await app.context().route('**/api/explorer?**', async route => {
-    const params = new URL(route.request().url()).searchParams;
-    const address = params.get('q');
-    const action = params.get('action');
-    const payload = action === 'address' || action === 'balance'
-      ? {data:{hash:address, coin_balance:'100000000'}, canonical_address:address, transactions:[tx], transfers:[transfer]}
-      : {transactions:[], stats:{}, chart:[]};
-    await route.fulfill({json:payload});
-  });
+  // Electron serves the app origin internally. Stub provider I/O in the main
+  // process, so the renderer still exercises the real desktop request handler.
+  await app.evaluate((_, {tx,transfer}) => {
+    const fetch = globalThis.fetch;
+    globalThis.fetch = async (input,options) => {
+      const url = new URL(input instanceof Request ? input.url : input);
+      if (url.pathname !== '/api/explorer') return fetch(input,options);
+      const address = url.searchParams.get('q');
+      const action = url.searchParams.get('action');
+      const payload = action === 'address' || action === 'balance'
+        ? {data:{hash:address, coin_balance:'100000000'}, canonical_address:address, transactions:[tx], transfers:[transfer]}
+        : {transactions:[], stats:{}, chart:[]};
+      return Response.json(payload);
+    };
+  }, {tx,transfer});
   const page = await app.firstWindow();
   page.setDefaultTimeout(30000);
   page.on('pageerror', error => console.error('Renderer:',error.message));
   await page.locator('.search-box input').waitFor();
+  assert.equal(new URL(page.url()).origin,'http://127.0.0.1:19237');
+  assert.equal(externalConnections,0,'The app must not connect to the process on the old port');
+  await page.locator('.sidebar-bottom button.nav-item').click();
+  await page.locator('.theme-picker .swatch-dark').click();
+  await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
+  await page.reload();
+  await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
   const search = page.locator('.search-box input');
   await search.fill(wallet);
-  const addressResult = page.waitForResponse(response => {
-    const url = new URL(response.url());
-    return url.pathname === '/api/explorer' && url.searchParams.get('action') === 'address'
-      && url.searchParams.get('q') === wallet;
-  });
   const graph = page.locator('.graph-panel');
   try {
     await page.locator('.search-submit').click();
-    assert.equal((await addressResult).status(), 200);
     await graph.locator('.graph-edge').first().waitFor({state:'attached'});
+    assert.equal(externalConnections,0);
   } catch (error) {
     console.error((await page.locator('body').innerText()).slice(0,2500));
     throw error;
@@ -59,11 +69,48 @@ try {
   await graph.locator('.inspector-address').filter({hasText:wallet}).waitFor();
 
   const fullscreen = graph.getByRole('button', {name:'Fullscreen', exact:true});
-  await fullscreen.click();
-  await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
   const exitFullscreen = graph.getByRole('button', {name:'Exit fullscreen', exact:true});
+  const waitForMacWindow = async (active) => {
+    if (process.platform !== 'darwin') return;
+    for (let i=0;i<100;i++) {
+      const state=await app.evaluate(({BrowserWindow}) => BrowserWindow.getAllWindows()[0].isSimpleFullScreen());
+      if(state===active)return;
+      await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    assert.fail('The macOS window did not '+(active?'enter':'leave')+' fullscreen');
+  };
+  const enterGraphFullscreen = async () => {
+    await fullscreen.click();
+    await page.waitForFunction(() => document.fullscreenElement?.classList.contains('graph-panel'),null,{polling:100});
+    await waitForMacWindow(true);
+  };
+  const waitForGraphExit = async () => {
+    await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
+    await fullscreen.waitFor();
+    await waitForMacWindow(false);
+  };
+  await enterGraphFullscreen();
   await exitFullscreen.click();
-  await page.waitForFunction(() => !document.fullscreenElement,null,{polling:100});
+  try {
+    await waitForGraphExit();
+  } catch (error) {
+    const renderer = await page.evaluate(() => ({
+      element:document.fullscreenElement?.className, visibility:document.visibilityState,
+      focused:document.hasFocus(),
+    }));
+    const native = await app.evaluate(({BrowserWindow}) => {
+      const window = BrowserWindow.getAllWindows()[0];
+      return {visible:window.isVisible(), nativeFullscreen:window.isFullScreen(),
+        simpleFullscreen:process.platform==='darwin'?window.isSimpleFullScreen():null};
+    });
+    console.error('Graph fullscreen did not close:',{renderer,native});
+    throw error;
+  }
+  if (process.platform === 'darwin') {
+    await enterGraphFullscreen();
+    await page.keyboard.press('Escape');
+    await waitForGraphExit();
+  }
 
   if (process.platform === 'win32') {
     await page.locator('.notification-bell').click();
@@ -83,5 +130,6 @@ try {
 
 } finally {
   await app?.close();
+  await new Promise(done => socket.close(done));
   await rm(profile, {recursive:true, force:true, maxRetries:3, retryDelay:200});
 }
