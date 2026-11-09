@@ -47,17 +47,53 @@ try {
   await page.locator('.search-box input').waitFor();
   assert.equal(new URL(page.url()).origin,'http://127.0.0.1:19237');
   assert.equal(externalConnections,0,'The app must not connect to the process on the old port');
-  await page.locator('.sidebar-bottom button.nav-item').click();
-  await page.locator('.theme-picker .swatch-dark').click();
-  await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
+  await page.evaluate(() => localStorage.setItem('blockradia-theme', JSON.stringify('gray')));
+  await page.reload();
+  await page.waitForFunction(() => document.documentElement.dataset.theme==='light');
+  const settings = page.locator('.sidebar-bottom button.nav-item');
+  await settings.click();
+  assert.equal(await page.locator('.theme-picker button').count(),6);
+  const hex = page.getByLabel('HEX color',{exact:true});
+  const applyHex = page.getByRole('button',{name:'Apply HEX theme'});
+  await hex.fill('invalid');
+  await applyHex.click();
+  assert.equal(await hex.getAttribute('aria-invalid'),'true');
+  assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
+  await hex.fill('#0af');
+  await applyHex.click();
+  await page.waitForFunction(() =>
+    document.documentElement.dataset.theme==='hex'
+    && document.documentElement.style.getPropertyValue('--hex-base')==='#00aaff'
+  );
+  await page.reload();
+  await page.waitForFunction(() => document.documentElement.dataset.theme==='hex');
+  await settings.click();
+  assert.equal(await hex.inputValue(),'#00aaff');
+  for(const [preset,color] of [['light','#f5f4f8'],['cream','#f5efdf'],['forest','#081511'],['ruby','#190b13'],['black','#000000'],['dark','#11131c']]){
+    await page.locator('.theme-picker .swatch-'+preset).click();
+    await page.waitForFunction(({preset,color}) =>
+      document.documentElement.dataset.theme===preset && document.querySelector('#theme-hex')?.value===color,
+      {preset,color}
+    );
+  }
   await page.reload();
   await page.waitForFunction(() => document.documentElement.dataset.theme==='dark');
+  await settings.click();
+  assert.equal(await hex.inputValue(),'#11131c');
+  await page.keyboard.press('Escape');
+  const tableTools = page.locator('.table-toolbox');
+  const filters = tableTools.getByRole('button',{name:'Filters',exact:true});
+  await filters.click();
+  await tableTools.getByRole('button',{name:'Custom period',exact:true}).click();
+  assert.equal(await tableTools.getByLabel('From',{exact:true}).evaluate(input=>input===document.activeElement),true);
+  await filters.click();
   const search = page.locator('.search-box input');
   await search.fill(wallet);
   const graph = page.locator('.graph-panel');
   try {
     await page.locator('.search-submit').click();
     await graph.locator('.graph-edge').first().waitFor({state:'attached'});
+    assert.doesNotMatch(await graph.locator('.graph-coverage').innerText(),/\bundefined\b/);
     assert.equal(externalConnections,0);
   } catch (error) {
     console.error((await page.locator('body').innerText()).slice(0,2500));

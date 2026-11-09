@@ -2,7 +2,7 @@
 
 Search public blockchain addresses, inspect balances and transaction history, and explore counterparties in the wallet graph. An internet connection is required for live data. The interface defaults to English and can be changed in Settings. No wallet connection or private key is required.
 
-This release preserves your theme across restarts, starts independently of other local services, and excludes tokens from native large-transfer results.
+Choose from six themes in Settings or enter a custom HEX color. BlockRadia shows the selected theme's HEX value and remembers your choice across restarts. This release also improves recovery when wallet data providers limit requests and hardens the shared API.
 
 - **Windows x64:** requires Windows 10 or later. Open the portable EXE. Windows SmartScreen may warn that the publisher is unknown.
 - **macOS:** choose arm64 for Apple Silicon or x64 for Intel. Open the ad-hoc signed DMG and drag BlockRadia into Applications, or extract the ZIP.

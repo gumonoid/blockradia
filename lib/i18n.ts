@@ -83,10 +83,12 @@ const messages:Record<string,{en:string;zh:string}>={
     "en": "Cream",
     "zh": "奶油色"
   },
-  "Серая": {
-    "en": "Gray",
-    "zh": "灰色"
-  },
+  "Оформление по HEX": {en:"HEX theme",zh:"HEX 主题"},
+  "Цвет задаёт оттенок фона, панелей и акцентов.": {en:"The color tints the background, panels, and accents.",zh:"该颜色用于背景、面板和强调色。"},
+  "Цвет HEX": {en:"HEX color",zh:"HEX 颜色"},
+  "Выбрать цвет": {en:"Choose color",zh:"选择颜色"},
+  "Применить HEX": {en:"Apply HEX theme",zh:"应用 HEX 主题"},
+  "Введите HEX из 3 или 6 символов, например #8159cc.": {en:"Enter a 3- or 6-digit HEX color, such as #8159cc.",zh:"输入 3 位或 6 位 HEX 颜色，例如 #8159cc。"},
   "Обзор": {
     "en": "Overview",
     "zh": "概览"
@@ -647,9 +649,9 @@ const messages:Record<string,{en:string;zh:string}>={
     "en": "Online sources",
     "zh": "在线数据源"
   },
-  "Цены и история цены — DefiLlama Coins. EVM — Blockscout / публичные RPC; TRON — TronGrid; Solana — Mainnet RPC; TON — TON Center v3.": {
-    "en": "Prices and price history: DefiLlama Coins. EVM: Blockscout / public RPC; TRON: TronGrid; Solana: Mainnet RPC / PublicNode; TON: TON Center v3.",
-    "zh": "价格及历史价格：DefiLlama Coins。EVM：Blockscout / 公开 RPC；TRON：TronGrid；Solana：Mainnet RPC / PublicNode；TON：TON Center v3。"
+  "Цены и история цены — Kraken / DefiLlama. EVM — Blockscout / Alchemy / публичные RPC; TRON — TronGrid; Solana — Mainnet RPC; GRAM(TON) — TON Center.": {
+    "en": "Prices and price history: Kraken / DefiLlama. EVM: Blockscout / Alchemy / public RPC; TRON: TronGrid; Solana: Mainnet RPC / PublicNode; GRAM(TON): TON Center.",
+    "zh": "价格及历史价格：Kraken / DefiLlama。EVM：Blockscout / Alchemy / 公开 RPC；TRON：TronGrid；Solana：Mainnet RPC / PublicNode；GRAM(TON)：TON Center。"
   },
   "История и граф используют реальные переводы, возвращённые источниками. Объём выборки указан под графом. Никнеймы — ваши локальные подписи, а не установленные владельцы. Граф не доказывает связь между владельцами кошельков.": {
     "en": "History and graphs use actual transfers returned by sources. Sample size appears below the graph. Nicknames are your local labels, not verified identities. The graph does not prove links between wallet owners.",

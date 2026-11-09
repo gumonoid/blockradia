@@ -14,7 +14,7 @@ Explore nine networks, trace transfers in an interactive graph, and save your re
 
 ## Download
 
-The **latest release** is available for Windows, macOS, and Linux. Choose the package for your operating system and processor. Sign in with a GitHub account that has access to this private repository.
+The **latest release** is available for Windows, macOS, and Linux. Choose the package for your operating system and processor. If GitHub asks you to sign in, use an account with access to the repository.
 
 | Platform | Architecture | Download |
 | :--- | :--- | :--- |
@@ -31,7 +31,7 @@ The **latest release** is available for Windows, macOS, and Linux. Choose the pa
 2. **macOS** — open the DMG and drag BlockRadia into Applications, or extract the ZIP. Choose Apple Silicon or Intel to match your Mac.
 3. **Linux** — mark the AppImage executable and run it, or extract the tar.gz package.
 
-Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. The Windows package requires Windows 10 or later. Linux requires Chromium sandbox support, including unprivileged user namespaces for the AppImage launcher. The v1.1.5 Windows EXE is unsigned and its macOS builds use ad-hoc signing without notarization. Windows and macOS may show warnings on first launch. SHA256SUMS.txt provides unsigned hashes for download integrity.
+Packaged downloads include the desktop runtime. An internet connection supplies blockchain and market data. The interface defaults to English and also supports Russian and Simplified Chinese. The Windows package requires Windows 10 or later. Linux requires Chromium sandbox support, including unprivileged user namespaces for the AppImage launcher. Windows and macOS may show warnings on first launch. See the release notes for the signature status and use SHA256SUMS.txt to check download integrity.
 
 ## Features
 
@@ -179,9 +179,9 @@ Maintainers can run it from **Actions → Build desktop packages → Run workflo
 
 - **Read-only:** no private keys, wallet signatures, or fund transfers are used.
 - **Local annotations:** history, bookmarks, and nicknames are stored in the application's local profile. Sharing exports is an explicit action.
-- **Internet lookups:** searched public addresses are sent to the corresponding blockchain API providers. Market quotes use Kraken and DefiLlama.
+- **Internet lookups:** the default desktop build sends public addresses and transaction hashes to the shared BlockRadia API and the blockchain providers that handle the lookup. Some requests go directly to a provider. Market quotes use Kraken and DefiLlama.
 - **Isolated desktop window:** Node.js access is disabled in the renderer, with sandbox and context isolation enabled.
-- **Local service:** the embedded API binds only to `127.0.0.1:19237`. It is not a public web service.
+- **Local app origin:** Electron handles `http://127.0.0.1:19237` internally without opening a listening port.
 
 ---
 

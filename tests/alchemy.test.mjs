@@ -17,3 +17,12 @@ test('one failed direction retains real transfers and marks history incomplete',
 test('both failed directions are not presented as an empty successful history',async()=>{
  const d=await alchemyAddress('base',q,'secret',reader(async()=>{throw Error('unavailable')}));assert.equal(d.partial_history,true);assert(d.history_error);assert.equal(d.data.coin_balance,'16');
 });
+test('Arbitrum fallback asks Alchemy only for transfer types it supports',async()=>{
+ const data=await alchemyAddress('arbitrum',q,'secret',async(url,body)=>{
+  assert.equal(new URL(url).hostname,'arb-mainnet.g.alchemy.com');
+  if(body.method==='alchemy_getAssetTransfers')assert.deepEqual(body.params[0].category,['external','erc20']);
+  return reader(async()=>({transfers:[item('external')]}))(url,body);
+ });
+ assert.equal(data.transactions.length,1);
+ assert.match(data.coverage,/Internal transfers are unavailable/);
+});

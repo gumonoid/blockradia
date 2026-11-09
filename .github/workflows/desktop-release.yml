@@ -37,6 +37,10 @@ jobs:
             platform: windows
           - os: macos-15-intel
             platform: macos
+            arch: x64
+          - os: macos-15
+            platform: macos
+            arch: arm64
           - os: ubuntu-22.04
             platform: linux
     runs-on: ${{ matrix.os }}
@@ -63,7 +67,8 @@ jobs:
         run: npm --prefix desktop run package:win
       - name: Package macOS
         if: matrix.platform == 'macos' && inputs.unsigned
-        run: npm --prefix desktop run package:mac
+        working-directory: desktop
+        run: npx --no-install electron-builder --mac dmg zip --${{ matrix.arch }} --publish never
       - name: Sign and verify Windows executable
         if: matrix.platform == 'windows' && !inputs.unsigned
         env:
@@ -79,6 +84,7 @@ jobs:
       - name: Sign, notarize and verify macOS packages
         if: matrix.platform == 'macos' && !inputs.unsigned
         env:
+          ARCH: ${{ matrix.arch }}
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
           MAC_SIGNING_IDENTITY: ${{ vars.MAC_SIGNING_IDENTITY }}
@@ -90,14 +96,12 @@ jobs:
           : "${CSC_LINK:?Missing Developer ID certificate}" "${CSC_KEY_PASSWORD:?Missing certificate password}"
           : "${MAC_SIGNING_IDENTITY:?Missing Developer ID identity}"
           : "${APPLE_ID:?Missing Apple ID}" "${APPLE_APP_SPECIFIC_PASSWORD:?Missing notarization password}" "${APPLE_TEAM_ID:?Missing team ID}"
-          npm --prefix desktop run package:mac -- "--config.mac.identity=$MAC_SIGNING_IDENTITY" --config.mac.hardenedRuntime=true --config.mac.notarize=true --config.dmg.sign=true --config.forceCodeSigning=true
-          for arch in x64 arm64; do
-            temp=$(mktemp -d)
-            ditto -x -k "release/BlockRadia-macOS-$arch.zip" "$temp"
-            codesign --verify --deep --strict "$temp/BlockRadia.app"
-            xcrun stapler validate "$temp/BlockRadia.app"
-            codesign --verify "release/BlockRadia-macOS-$arch.dmg"
-          done
+          (cd desktop && npx --no-install electron-builder --mac dmg zip --"$ARCH" --publish never "--config.mac.identity=$MAC_SIGNING_IDENTITY" --config.mac.hardenedRuntime=true --config.mac.notarize=true --config.dmg.sign=true --config.forceCodeSigning=true)
+          temp=$(mktemp -d)
+          ditto -x -k "release/BlockRadia-macOS-$ARCH.zip" "$temp"
+          codesign --verify --deep --strict "$temp/BlockRadia.app"
+          xcrun stapler validate "$temp/BlockRadia.app"
+          codesign --verify "release/BlockRadia-macOS-$ARCH.dmg"
       - name: Check first launch on Windows
         if: matrix.platform == 'windows'
         run: node scripts/desktop-smoke.mjs release/win-unpacked/BlockRadia.exe
@@ -110,16 +114,22 @@ jobs:
           executable=$(find "$temp" -type f -name blockradia-desktop -print -quit)
           test -n "$executable"
           xvfb-run -a node scripts/desktop-smoke.mjs "$executable"
-      - name: Check first launch from the Intel macOS ZIP
+      - name: Check first launch from macOS downloads
         if: matrix.platform == 'macos'
         shell: bash
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
-          temp=$(mktemp -d)
-          ditto -x -k release/BlockRadia-macOS-x64.zip "$temp"
-          node scripts/desktop-smoke.mjs "$temp/BlockRadia.app/Contents/MacOS/BlockRadia"
+          volume=$(mktemp -d)
+          archive=$(mktemp -d)
+          hdiutil attach "release/BlockRadia-macOS-$ARCH.dmg" -mountpoint "$volume" -nobrowse -readonly
+          trap 'hdiutil detach "$volume"; rm -rf "$archive"' EXIT
+          node scripts/desktop-smoke.mjs "$volume/BlockRadia.app/Contents/MacOS/BlockRadia"
+          ditto -x -k "release/BlockRadia-macOS-$ARCH.zip" "$archive"
+          node scripts/desktop-smoke.mjs "$archive/BlockRadia.app/Contents/MacOS/BlockRadia"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: blockradia-${{ matrix.platform }}
+          name: blockradia-${{ matrix.os }}
           path: release/BlockRadia-*
           if-no-files-found: error
           compression-level: 0
