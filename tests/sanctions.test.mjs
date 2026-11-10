@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {screenSanctions} from '../lib/sanctions.ts';
+const address='0x'+'a'.repeat(40),now=Date.now();
+const data={source:'https://ofac.treasury.gov',retrievedAt:new Date(now).toISOString(),publishedAt:'test fixture',sha256:'fixture',records:[{address,currency:'ETH',entity:'TEST ONLY',uid:'1',programs:['TEST']}]};
+test('sanctions exact EVM match retains provenance',()=>{const r=screenSanctions('ethereum',address.toUpperCase(),data,now);assert.equal(r.matches[0].scope,'network_match');assert.equal(r.matches[0].entity,'TEST ONLY');});
+test('same EVM address on another chain needs review',()=>assert.equal(screenSanctions('base',address,data,now).matches[0].scope,'network_unconfirmed'));
+test('outdated source cannot return fresh no-match',()=>assert.equal(screenSanctions('ethereum','other',data,now+86400001).status,'stale'));
+test('unsupported coverage is not no-match',()=>assert.equal(screenSanctions('ton','other',data,now).status,'network_unconfirmed'));
+test('removed entry is not retained when snapshot is replaced',()=>assert.equal(screenSanctions('ethereum',address,{...data,records:[]},now).matches.length,0));

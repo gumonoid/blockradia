@@ -1,7 +1,7 @@
 import http from 'node:http';
 import {isIP} from 'node:net';
 
-export function createGateway(handler,{limit=60,maxActive=16,maxActivePerClient=4,globalLimit=600,trustProxy=false}={}){
+export function createGateway(handler,{limit=60,maxActive=16,maxActivePerClient=4,globalLimit=600,trustProxy=false,webApp}={}){
  const clients=new Map(),activeClients=new Map();let active=0,remaining=globalLimit,resetAt=0;
  const cleanup=setInterval(()=>{const now=Date.now();for(const [ip,item] of clients)if(item.reset<=now)clients.delete(ip);},60000);cleanup.unref();
  const server=http.createServer(async(req,res)=>{
@@ -9,7 +9,10 @@ export function createGateway(handler,{limit=60,maxActive=16,maxActivePerClient=
   if(req.method!=='GET'){send(405,{error:'Method not allowed'},{Allow:'GET'});return;}
   let url;try{url=new URL(req.url,'http://gateway');}catch{send(400,{error:'Invalid URL'});return;}
   if(url.pathname==='/healthz'){send(200,{status:'ok'});return;}
-  if(url.pathname!=='/api/explorer'){send(404,{error:'Not found'});return;}
+  if(url.pathname!=='/api/explorer'){
+   if(webApp?.(url.pathname,res))return;
+   send(404,{error:'Not found'});return;
+  }
   if(req.url.length>4096){send(414,{error:'Request too long'});return;}
   // The desktop and development proxy call this API from Node, not a web origin.
   if(req.headers.origin!==undefined||['cross-site','same-site'].includes(req.headers['sec-fetch-site'])){
