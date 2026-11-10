@@ -2,7 +2,7 @@ type Read=(url:string,body?:unknown,options?:{timeoutMs?:number;retries?:number}
 export const alchemyNetworks:Record<string,string>={base:'base-mainnet',polygon:'polygon-mainnet'};
 export async function alchemyAddress(network:string,address:string,key:string,read:Read,range?:{from:number;to:number}){
  const archiveNetworks:Record<string,string>={ethereum:'eth-mainnet',arbitrum:'arb-mainnet',optimism:'opt-mainnet'};
- const chain=alchemyNetworks[network]||(range||network==='arbitrum'?archiveNetworks[network]:undefined);if(!chain)throw Error('Unsupported Alchemy network');
+ const chain=alchemyNetworks[network]||(range||network==='arbitrum'||network==='ethereum'?archiveNetworks[network]:undefined);if(!chain)throw Error('Unsupported Alchemy network');
  const endpoint='https://'+chain+'.g.alchemy.com/v2/'+encodeURIComponent(key);
  const rpc=async(method:string,params:unknown[])=>{const data=await read(endpoint,{jsonrpc:'2.0',id:1,method,params},{timeoutMs:6500,retries:1});if(data.result==null)throw Error('Alchemy не вернул данные');return data.result;};
  const supportsInternal=network!=='arbitrum'&&network!=='optimism';
