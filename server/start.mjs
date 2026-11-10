@@ -1,9 +1,11 @@
 import {localExplorer} from '../app/api/explorer/route.ts';
 import {createGateway} from './http.mjs';
+import {createWebApp} from './web-app.mjs';
 const port=Number(process.env.PORT||8080);
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('Invalid PORT');
 const globalLimit=Number(process.env.API_REQUESTS_PER_MINUTE||600);
 if(!Number.isSafeInteger(globalLimit)||globalLimit<1)throw Error('Invalid API_REQUESTS_PER_MINUTE');
-const server=createGateway(localExplorer,{globalLimit,trustProxy:process.env.TRUST_PROXY==='true'});
+const webApp=process.env.BLOCKRADIA_WEB_DIR?await createWebApp(process.env.BLOCKRADIA_WEB_DIR):undefined;
+const server=createGateway(localExplorer,{globalLimit,trustProxy:process.env.TRUST_PROXY==='true',webApp});
 server.listen(port,'0.0.0.0',()=>console.log('BlockRadia API listening on port '+port));
 for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>{server.close(()=>process.exit(0));setTimeout(()=>process.exit(1),10000).unref();});

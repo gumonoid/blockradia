@@ -34,3 +34,16 @@ body{font-family:Manrope,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-s
 .graph-inspector .exchange-badge{color:#dce5fa}
 
 .inspector-transfers{margin:18px 0;padding:14px 0;border-top:1px solid #34415a;border-bottom:1px solid #34415a;min-width:0}.inspector-transfers h4{font-size:12px;color:#e2e9fa;display:flex;justify-content:space-between;gap:8px;margin:0 0 12px}.inspector-transfers h4>span{color:#a998d8}.inspector-transfer-list{display:grid;gap:8px;max-height:310px;overflow:auto;scrollbar-width:thin;scrollbar-color:#475773 transparent}.inspector-transfer-list>a{display:grid;gap:7px;padding:11px;border:1px solid #34415a;border-radius:8px;background:#ffffff05}.inspector-transfer-list>a:hover{border-color:#a58adc;background:#b09ada12}.inspector-transfer-heading{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#b5c2df}.inspector-transfer-list strong{font-size:14px;color:#e7eefb;overflow-wrap:anywhere}.inspector-transfer-list strong>span{font-size:11px;color:#bcb0e3}.inspector-transfer-list time,.inspector-transfer-list small{font-size:10px;color:#c0cce3;line-height:1.6}.inspector-transfer-list code{color:#8fa2c8;font-size:9px;overflow-wrap:anywhere}.inspector-transfers>.graph-button{margin-top:10px}
+/* Evidence review follows the active theme and wraps long public addresses. */
+.aml-panel p { color: var(--muted); line-height: 1.6; }
+.aml-peer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.aml-peer > button { max-width: 100%; text-align: left; }
+.aml-peer code, .aml-hash { overflow-wrap: anywhere; }
+.aml-peer > details { flex-basis: 100%; }
+.aml-hash { display: block; padding: 6px 0; }
+.aml-panel summary { cursor: pointer; padding: 12px 0; }
+.aml-rating { padding: 16px 20px; border: 1px solid; border-left-width: 5px; border-radius: 12px; margin-bottom: 16px; }
+.aml-rating p { color: inherit; margin-bottom: 0; }
+.aml-rating-green { color: #176b45; background: #e9f9ef; border-color: #309467; }
+.aml-rating-yellow { color: #754b00; background: #fff6d9; border-color: #b9830d; }
+.aml-rating-red { color: #a32335; background: #fff0f1; border-color: #c44356; }

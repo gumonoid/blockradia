@@ -3,4 +3,6 @@
 .git
 release
 work
-desktop
+desktop/*
+!desktop/ui
+!desktop/build.mjs
