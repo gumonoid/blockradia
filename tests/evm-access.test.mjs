@@ -3,6 +3,37 @@ import assert from 'node:assert/strict';
 import {GET} from '../app/api/explorer/route.ts';
 const original=globalThis.fetch;
 const json=value=>Response.json(value);
+test('Ethereum recovers missing indexed history through server-side Alchemy',async()=>{
+ const previous=process.env.ALCHEMY_API_KEY;
+ process.env.ALCHEMY_API_KEY='ethereum-fixture-key';
+ const address='0x'+'9'.repeat(40),peer='0x'+'8'.repeat(40),hash='0x'+'b'.repeat(64);
+ globalThis.fetch=async(input,init)=>{
+  const url=new URL(input);
+  if(url.hostname==='eth-mainnet.g.alchemy.com'){
+   const {method,params}=JSON.parse(init.body);
+   if(method==='eth_getBalance')return json({result:'0x1'});
+   if(method==='eth_getCode')return json({result:'0x'});
+   assert.deepEqual(params[0].category,['external','internal','erc20']);
+   return json({result:{transfers:params[0].fromAddress?[{uniqueId:'test-transfer',hash,from:address,to:peer,blockNum:'0x20',category:'internal',asset:'ETH',rawContract:{value:'0x1',decimal:'0x12'}}]:[]}});
+  }
+  if(url.pathname.endsWith('/addresses/'+address))return json({hash:address,coin_balance:'1'});
+  if(url.pathname.endsWith('/internal-transactions'))return new Response('{}',{status:403});
+  return json({items:[]});
+ };
+ try{
+  const response=await GET(new Request('http://local/api/explorer?network=ethereum&action=address&q='+address));
+  const body=await response.text(),data=JSON.parse(body);
+  assert.equal(response.status,200);
+  assert.equal(data.source_name,'Alchemy Transfers API');
+  assert.equal(data.transfers[0]?.hash,hash);
+  assert.equal(data.partial_history,false);
+  assert(!body.includes('ethereum-fixture-key'));
+ }finally{
+  globalThis.fetch=original;
+  if(previous===undefined)delete process.env.ALCHEMY_API_KEY;
+  else process.env.ALCHEMY_API_KEY=previous;
+ }
+});
 test('paid network restriction distinguishes a connected key from a missing key',async()=>{
  const old=process.env.BLOCKSCOUT_API_KEY;process.env.BLOCKSCOUT_API_KEY='test-key';
  globalThis.fetch=async(url,init)=>String(url).includes('api.blockscout.com')?new Response('{}',{status:402}):json({result:{number:'0x10',timestamp:'0x64',transactions:[]}});
