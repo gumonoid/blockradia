@@ -69,7 +69,7 @@ try {
   await page.waitForFunction(() => document.documentElement.dataset.theme==='hex');
   await settings.click();
   assert.equal(await hex.inputValue(),'#00aaff');
-  for(const [preset,color] of [['light','#f5f4f8'],['cream','#f5efdf'],['forest','#081511'],['ruby','#190b13'],['black','#000000'],['dark','#11131c']]){
+  for(const [preset,color] of [['light','#f7f8fa'],['cream','#f5efdf'],['forest','#081511'],['ruby','#190b13'],['black','#000000'],['dark','#11131c']]){
     await page.locator('.theme-picker .swatch-'+preset).click();
     await page.waitForFunction(({preset,color}) =>
       document.documentElement.dataset.theme===preset && document.querySelector('#theme-hex')?.value===color,
