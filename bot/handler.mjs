@@ -72,6 +72,7 @@ export function createBot({api,store,explorer,username}){
  }
 
  async function lookup(chat,owner,network,address,view='wallet',filter={}){
+  if(network==='bitcoin'&&/^bc1/i.test(address))address=address.toLowerCase();
   if(!Object.hasOwn(networks,network)||!candidates(address).includes(network)){
    await say(chat,'Check the network and wallet address. Пример /wallet tron T…');return;
   }
@@ -151,6 +152,7 @@ export function createBot({api,store,explorer,username}){
  }
 
  async function watch(chat,owner,network,address,bundle){
+  if(network==='bitcoin'&&/^bc1/i.test(address))address=address.toLowerCase();
   if(chat.type!=='private'){await say(chat,'Open the bot in a private chat and use /watch network address.');return;}
   const key=userKey(owner,'watches'),list=store.get(key,[]);
   if(list.some(w=>w.network===network&&w.address===address)){await say(chat,'Already watching this address.');return;}
@@ -270,7 +272,7 @@ export function createBot({api,store,explorer,username}){
   if(command==='wallet'&&args.length===1)return detect(chat,owner,args[0]);
   if(command==='network'&&!args.length){await say(chat,Object.entries(networks).map(([n,c])=>'/network '+n+' · '+c.name).join('\n'));return;}
   if(!Object.hasOwn(networks,network)){await say(chat,'Choose a network with /network. Example: /wallet ethereum 0x…');return;}
-  const address=args[1];
+  const address=network==='bitcoin'&&/^bc1/i.test(args[1]||'')?args[1].toLowerCase():args[1];
   if(['network','fees','price','activity'].includes(command)){
    const periods={'1h':'1Ч','4h':'4Ч','24h':'24Ч','7d':'7Д','14d':'14Д','30d':'30Д','90d':'90Д','1y':'1Г'};
    const action={network:'overview',activity:'overview',fees:'fees',price:'market'}[command];
