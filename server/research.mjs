@@ -58,13 +58,14 @@ function amount(raw,decimals){
 async function tokenBalances(network,address){
  const q=encodeURIComponent(address);
  let rows=[],partial=false,source='';
+ const convert=(values,build)=>values.flatMap(value=>{try{const row=build(value);if(typeof row.asset!=='string'||!row.asset)throw Error('Unknown asset');return [row];}catch{partial=true;return [];}});
  if(hosts[network]){
   source='Blockscout token balances';
   try{
    const data=await json('https://'+hosts[network]+'.blockscout.com/api/v2/addresses/'+q+'/token-balances');
    if(!Array.isArray(data))throw Error('Unknown token response');
    partial=data.length>100;
-   rows=data.slice(0,100).map(r=>({asset:r.token.address_hash,symbol:r.token.symbol||r.token.address_hash,balance:amount(r.value,r.token.decimals),price:r.token.exchange_rate}));
+   rows=convert(data.slice(0,100),r=>({asset:r.token.address_hash,symbol:r.token.symbol||r.token.address_hash,balance:amount(r.value,r.token.decimals),price:r.token.exchange_rate}));
   }catch(error){
    const key=process.env.ALCHEMY_API_KEY;
    if(!key)throw error;
@@ -82,21 +83,25 @@ async function tokenBalances(network,address){
   }
  }else if(network==='solana'){
   source='Solana token accounts';
+  let succeeded=0;
   for(const programId of ['TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA','TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb']){
-   const data=await json('https://solana-rpc.publicnode.com',{jsonrpc:'2.0',id:1,method:'getTokenAccountsByOwner',params:[address,{programId},{encoding:'jsonParsed'}]});
+   try{const data=await json('https://solana-rpc.publicnode.com',{jsonrpc:'2.0',id:1,method:'getTokenAccountsByOwner',params:[address,{programId},{encoding:'jsonParsed'}]});
    if(!Array.isArray(data.result?.value))throw Error('Solana token accounts unavailable');
-   rows.push(...data.result.value.map(r=>{const t=r.account.data.parsed.info;return {asset:t.mint,symbol:t.mint,balance:amount(t.tokenAmount.amount,t.tokenAmount.decimals)};}));
+   succeeded++;
+   rows.push(...convert(data.result.value,r=>{const t=r.account.data.parsed.info;return {asset:t.mint,symbol:t.mint,balance:amount(t.tokenAmount.amount,t.tokenAmount.decimals)};}));
+   }catch{partial=true;}
   }
+  if(!succeeded)throw Error('Solana token sources unavailable');
  }else if(network==='ton'){
   source='TonAPI Jetton balances';
   const data=await json('https://tonapi.io/v2/accounts/'+q+'/jettons');
   if(!Array.isArray(data.balances))throw Error('Jetton balances unavailable');
-  rows=data.balances.map(t=>({asset:t.jetton.address,symbol:t.jetton.symbol||t.jetton.address,balance:amount(t.balance,t.jetton.decimals),price:t.price?.prices?.USD}));
+  rows=convert(data.balances,t=>({asset:t.jetton.address,symbol:t.jetton.symbol||t.jetton.address,balance:amount(t.balance,t.jetton.decimals),price:t.price?.prices?.USD}));
  }else if(network==='tron'){
   source='TRONSCAN token balances';
   const data=await json('https://apilist.tronscanapi.com/api/account?address='+q);
   if(!Array.isArray(data.trc20token_balances))throw Error('TRC-20 balances unavailable');
-  rows=data.trc20token_balances.map(t=>({asset:t.tokenId,symbol:t.tokenAbbr||t.tokenId,balance:amount(t.balance,t.tokenDecimal)}));
+  rows=convert(data.trc20token_balances,t=>({asset:t.tokenId,symbol:t.tokenAbbr||t.tokenId,balance:amount(t.balance,t.tokenDecimal)}));
  }
  rows=rows.filter(r=>Number(r.balance)>0);
  const assets=new Map();
