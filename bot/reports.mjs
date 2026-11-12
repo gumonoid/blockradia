@@ -96,7 +96,7 @@ export function graphSVG(network,address,bundle){
  const peers=counterparties.slice(0,24);
  const height=Math.max(240,peers.length*48+100);
  const rootY=Math.round(height/2);
- return '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="'+height+'" role="img" aria-label="Direct counterparties in loaded sample">'+
+ return '<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="'+height+'" role="img" aria-label="Direct counterparties in loaded sample">'+
   '<rect width="100%" height="100%" fill="#171522"/><g fill="#eee9fa" font-family="monospace" font-size="12">'+
   '<text x="24" y="28">'+esc(network)+' · '+peers.length+' / '+counterparties.length+' counterparties · loaded sample</text>'+
   '<circle cx="180" cy="'+rootY+'" r="14" fill="#9873df"/><text x="24" y="'+(rootY+36)+'">'+esc(short(address))+'</text>'+

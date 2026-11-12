@@ -13,6 +13,11 @@ try {
     if ($nodeVersion -lt [version]'22.13.0') {
         throw 'Node.js 22.13 or newer is required.'
     }
+    if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'node_modules/@resvg/resvg-js/index.js'))) {
+        Write-Host 'Installing bot dependencies...'
+        & npm.cmd ci
+        if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
+    }
     if (-not $env:TELEGRAM_BOT_TOKEN) {
         Write-Host 'Enter the bot token from BotFather. Input is hidden and is not saved to a file.'
         $secureToken = Read-Host 'Telegram bot token' -AsSecureString

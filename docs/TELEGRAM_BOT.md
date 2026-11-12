@@ -1,6 +1,6 @@
 # BlockRadia chat bot
 
-This branch runs BlockRadia as a Telegram chat bot. Wallet cards, transaction lists, filters and AML findings appear in chat messages with inline buttons. Connections and market charts are downloadable SVG files.
+This branch runs BlockRadia as a Telegram chat bot. Wallet cards, transaction lists, filters and AML findings appear in chat messages with inline buttons. Connections and market charts are PNG images.
 
 ## Features
 
@@ -10,8 +10,8 @@ This branch runs BlockRadia as a Telegram chat bot. Wallet cards, transaction li
 - History pagination in groups of ten, up to 100 loaded transactions, confirmed/pending views, existing large-transfer thresholds, incoming/outgoing and text filters.
 - Transaction lookup, dated archive queries, network overview, current fees and price timeframes.
 - AML with the same OFAC and additional snapshots, evidence links and green/yellow/red status as the desktop version. Source freshness and coverage limitations remain visible. Dataset refresh is maintainer-operated.
-- Direct counterparty list, per-counterparty lookup buttons and SVG graph export.
-- Line charts, Kraken OHLC candlesticks with the candles argument, and activity charts via /activity. These are SVG attachments in chat.
+- Direct counterparty list, per-counterparty lookup buttons and PNG graph export.
+- Line charts, Kraken OHLC candlesticks with the candles argument, and activity charts via /activity. These are PNG images in chat.
 - Per-user recent wallets, nicknames, saved investigation snapshots, notes, JSON reports and configurable CSV columns.
 - Private wallet watches, up to ten per user and 100 per bot. Each watch is checked every two minutes. The bot reports newly seen timestamped transactions newer than watch creation, deduplicates them and skips incomplete responses. Coverage follows the provider's loaded sample.
 - Automatic checks in groups, enabled by default, up to three detected wallets per message and six requests per minute per chat. Administrators can disable automatic checking.
@@ -23,7 +23,7 @@ The bot reuses the public read-only explorer API. Credentials for blockchain pro
 
 Requires Node.js 22.13 or newer. Set TELEGRAM_BOT_TOKEN securely in your local environment, then run:
 
-On Windows, double-click bot/start-local.cmd. It checks Node.js and prompts for a hidden token if the environment variable is absent. The token is passed only to the current process and is not saved to a file. Keep the console open. Ctrl+C stops the bot. This runtime needs no npm dependency installation.
+On Windows, double-click bot/start-local.cmd. It checks Node.js and prompts for a hidden token if the environment variable is absent. The token is passed only to the current process and is not saved to a file. Keep the console open. Ctrl+C stops the bot. The launcher installs npm dependencies when they are missing.
 
 ~~~powershell
 git switch feature/telegram-chat-bot
@@ -77,7 +77,7 @@ With privacy mode enabled, direct commands such as /wallet@YourBot ethereum 0x..
 
 The /dates command uses UTC boundaries. History lists use the user's /timezone preference. CSV retains source timestamps. /delete_me removes personal watches, saved investigations, nicknames, recent wallets and active sessions. A public reply already sent into a group remains part of that chat.
 
-Telegram may deliver an update again after a crash between sending a message and saving its offset. SQLite commits are atomic and notification baselines persist. Uncertain outgoing sends are not retried automatically. API retention and outages can reduce coverage. Charts and graphs are SVG documents; navigation uses lookup buttons and commands.
+Telegram may deliver an update again after a crash between sending a message and saving its offset. SQLite commits are atomic and notification baselines persist. Uncertain outgoing sends are not retried automatically. API retention and outages can reduce coverage. Charts and graphs are PNG images; navigation uses lookup buttons and commands.
 
 ## Verification
 

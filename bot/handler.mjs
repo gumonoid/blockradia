@@ -2,6 +2,7 @@ import {randomBytes} from 'node:crypto';
 import {networks,candidates,extractAddresses,units,escapeHTML as esc,short,explorerLink} from './networks.mjs';
 import {walletText,transactionRows,historyText,amlText,amlReport,csvReport,graphSVG,priceSVG} from './reports.mjs';
 import {exchangeAddresses,getExchangeLabel} from '../lib/exchanges.ts';
+import {renderPNG} from './png.mjs';
 
 const help=[
  '<b>BlockRadia</b>',
@@ -47,6 +48,7 @@ export function createBot({api,store,explorer,username}){
   return api('sendMessage',{chat_id:chat.id,text:content,...(long?{}:{parse_mode:'HTML'}),link_preview_options:{is_disabled:true},...extra});
  };
  const sendFile=(chat,name,content,type)=>api('sendDocument',{chat_id:chat.id},{name,content,type});
+ const sendChart=(chat,name,svg)=>api('sendPhoto',{chat_id:chat.id},{name,content:renderPNG(svg),type:'image/png'});
 
  function allow(chatId){
   const now=Date.now(),key=String(chatId),entry=quotas.get(key);
@@ -113,7 +115,7 @@ export function createBot({api,store,explorer,username}){
    const text=['<b>Direct counterparties · loaded sample</b>',...peers.map(p=>'<code>'+esc(p.address)+'</code>\n↓ '+p.incoming+' ↑ '+p.outgoing+(p.exchange?' · '+esc(p.exchange.name):''))].join('\n\n');
    const rows=peers.map((p,i)=>[button(id,short(p.address),'peer',String(i))]);
    await say(chat,text,{reply_markup:{inline_keyboard:rows}});
-   await sendFile(chat,'blockradia-connections.svg',graphSVG(network,address,bundle),'image/svg+xml');
+   await sendChart(chat,'blockradia-connections.png',graphSVG(network,address,bundle));
    return;
   }
   if(view==='export'){
@@ -282,11 +284,11 @@ export function createBot({api,store,explorer,username}){
     const change=Number.isFinite(data.change_percent)?(data.change_percent>=0?'🟢 +':'🔴 ')+data.change_percent.toFixed(2)+'%':'';
     await say(chat,'<b>'+networks[network].name+' / USD</b>\n$'+esc(data.price??'—')+' '+change+'\n'+esc(data.source_name)+'\n'+esc(data.updated_at||'')+'\n'+esc(data.warning||''));
     const chart=priceSVG(network,data,{candles:args[2]==='candles'});
-    if(chart)await sendFile(chat,'blockradia-price.svg',chart,'image/svg+xml');
+    if(chart)await sendChart(chat,'blockradia-price.png',chart);
    }else if(command==='activity'){
     const chart=priceSVG(network,{...data,chart:(data.chart||[]).map(p=>({date:p.date,value:p.transactions_count}))},{activity:true});
     await say(chat,esc(data.activity_label||'Loaded transaction sample')+'\n'+esc((data.warnings||[]).join('\n')));
-    if(chart)await sendFile(chat,'blockradia-activity.svg',chart,'image/svg+xml');
+    if(chart)await sendChart(chat,'blockradia-activity.png',chart);
    }else if(command==='fees'){
     await say(chat,'<b>'+networks[network].name+' · fees</b>\n'+(data.metrics||[]).map(m=>esc(m.label)+' '+esc(m.value)+' '+esc(m.unit)).join('\n')+'\n'+esc(data.source_name||data.source||'')+'\n'+esc(data.updated_at||data.fetched_at||''));
    }else await say(chat,'<b>'+networks[network].name+'</b>\n'+Object.entries(data.stats||{}).map(([k,v])=>esc(k)+': '+esc(v)).join('\n')+'\nSample: '+(data.transactions?.length||0)+' transactions\n'+esc(data.source_name||'')+'\n'+esc((data.warnings||[]).join('\n')));

@@ -105,7 +105,7 @@ test('wallet history, AML, graph and exports are reachable through callback butt
    await h.bot.handle({callback_query:{id:'q',from:{id:1},message:{chat:{id:1,type:'private'}},data:'br:'+id+':'+action+':'}});
    assert(h.calls.length>1,action);
    if(action==='export')assert.equal(h.calls.filter(c=>c.method==='sendDocument').length,2);
-   if(action==='graph')assert(h.calls.some(c=>c.file?.name.endsWith('.svg')));
+   if(action==='graph')assert(h.calls.some(c=>c.method==='sendPhoto'&&c.file?.name.endsWith('.png')&&Buffer.from(c.file.content).subarray(0,8).equals(Buffer.from('89504e470d0a1a0a','hex'))));
   }finally{h.store.close();}
  }
 });
@@ -146,6 +146,14 @@ test('Telegram errors do not expose the token',async()=>{
  const token='123456:'+ 'x'.repeat(32);
  const call=telegramClient(token,async()=>{throw Error('https://api.telegram.org/bot'+token)});
  await assert.rejects(call('getMe'),error=>!error.message.includes(token));
+});
+
+test('PNG is uploaded as a Telegram photo rather than a document',async()=>{
+ let payload;
+ const call=telegramClient('123456:'+ 'x'.repeat(32),async(url,options)=>{payload=options.body;return Response.json({ok:true,result:{}});});
+ await call('sendPhoto',{chat_id:1},{name:'graph.png',content:new Uint8Array([137,80,78,71]),type:'image/png'});
+ assert(payload.get('photo'));
+ assert.equal(payload.get('document'),null);
 });
 
 test('commands to another bot and malformed addresses are ignored',async()=>{

@@ -14,7 +14,7 @@ export function telegramClient(token,transport=fetch){
   if(document){
    payload=new FormData();
    for(const [key,value] of Object.entries(body))payload.append(key,typeof value==='object'?JSON.stringify(value):String(value));
-   payload.append('document',new Blob([document.content],{type:document.type||'application/json'}),document.name);
+   payload.append(method==='sendPhoto'?'photo':'document',new Blob([document.content],{type:document.type||'application/json'}),document.name);
   }else{
    payload=JSON.stringify(body);
    headers={'Content-Type':'application/json'};
