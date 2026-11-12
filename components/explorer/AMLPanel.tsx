@@ -1,5 +1,6 @@
 'use client';
-import {useMemo} from 'react';
+import {useMemo,useState} from 'react';
+import {downloadReportPDF} from '../../lib/pdf-download';
 import {useI18n} from '../../lib/i18n';
 import {analyzeAML} from '../../lib/aml';
 import ExchangeBadge from './ExchangeBadge';
@@ -10,10 +11,19 @@ export default function AMLPanel({network,address,bundle,onVisit}:{network:strin
  const w=(en:string,ru:string,zh:string)=>language==='ru'?ru:language==='zh'?zh:en;
  const report=useMemo(()=>analyzeAML(network,address,bundle.transfers||[]),[network,address,bundle.transfers]);
  const known=report.counterparties.filter(p=>p.exchange);
+ const [exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
  const signals=[{address,signals:additionalSignals(network,address)},...report.counterparties.map(p=>({address:p.address,signals:additionalSignals(network,p.address)}))].filter(p=>p.signals.length);
- const rating=amlStatus(report.sanctions,report.counterparties.map(p=>p.sanctions),signals.reduce((n,p)=>n+p.signals.length,0),!!bundle.history_loading||!!bundle.warnings?.length||!report.transferCount);
- function download(){const data={...report,rating,additionalSignals:signals,attribution:report.attribution?{label:report.attribution.label,source:report.attribution.source,checkedAt:report.attribution.checkedAt}:null,counterparties:report.counterparties.map(p=>({...p,exchange:p.exchange?{label:p.exchange.label,source:p.exchange.source,checkedAt:p.exchange.checkedAt}:null}))};const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='blockradia-aml-'+network+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
- return <section className="result-card aml-panel"><div className="section-heading"><h2>{w('AML · Evidence review','AML · Проверка связей','AML · 证据审查')}</h2><button onClick={download}>{w('Export report','Скачать отчёт','导出报告')}</button></div>
+ const rating=amlStatus(report.sanctions,report.counterparties.map(p=>p.sanctions),signals.reduce((n,p)=>n+p.signals.length,0),!!bundle.history_loading||!!bundle.partial_history||!!bundle.history_error||!!bundle.warnings?.length||!report.transferCount);
+ async function download(){
+  setExporting(true);setExportError('');
+  try{
+   const data={...report,rating,additionalSignals:signals,warnings:bundle.warnings};
+   await downloadReportPDF('aml',data,'blockradia-aml-'+network+'.pdf');
+  }catch{setExportError(w('Could not create PDF. Please retry.','Не удалось создать PDF. Повторите попытку.','无法创建 PDF，请重试。'));}
+  finally{setExporting(false);}
+ }
+ return <section className="result-card aml-panel"><div className="section-heading"><h2>{w('AML · Evidence review','AML · Проверка связей','AML · 证据审查')}</h2><button disabled={exporting} onClick={download}>{exporting?w('Creating PDF…','Создаём PDF…','正在生成 PDF…'):w('PDF report','Отчёт PDF','PDF 报告')}</button></div>
+ {exportError&&<p role="alert">{exportError}</p>}
  <div className={'aml-rating aml-rating-'+rating.color} role="status"><strong>{rating.color==='red'?w('Red · Direct sanctions match','Красный · Прямое санкционное совпадение','红色 · 直接制裁匹配'):rating.color==='green'?w('Green · No signals in checked sample','Зелёный · В проверенной выборке сигналов нет','绿色 · 已检查样本中无信号'):rating.reason==='incomplete_checks'?w('Yellow · Incomplete checks','Жёлтый · Проверка неполная','黄色 · 检查不完整'):w('Yellow · Review required','Жёлтый · Требуется проверка','黄色 · 需要审查')}</strong><p>{w('The color summarizes available evidence, not a guarantee of safety or a legal conclusion.','Цвет отражает доступные доказательства, а не гарантию безопасности или юридическое заключение.','颜色概括现有证据，并非安全保证或法律结论。')}</p></div>
  {signals.map(p=><div className="aml-peer" key={p.address}><button onClick={()=>onVisit(p.address)}><code>{p.address}</code></button>{p.signals.map((s,i)=><div key={i}><a href={s.source} target="_blank" rel="noreferrer">{s.name}</a><p>{w('Source report — not independently verified','Сообщение источника — независимо не подтверждено','来源报告 — 未经独立验证')} · {s.date||w('Date not provided','Дата не указана','未提供日期')} · {s.scope==='network_unconfirmed'?w('Network unconfirmed','Сеть не подтверждена','网络未确认'):'Ethereum'}</p><p>{s.comment}</p></div>)}</div>)}
  <p>{w('Preliminary analysis of loaded transfers. Exchange attribution is not a risk finding. Unknown addresses are not classified as safe.','Предварительный анализ загруженных переводов. Метка биржи не означает риск. Неизвестные адреса не считаются безопасными.','仅分析已加载转账。交易所标签不代表风险，未知地址不代表安全。')}</p>

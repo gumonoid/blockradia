@@ -103,6 +103,10 @@ Price charts offer line and Japanese candlestick views for 1H, 4H, 24H, 7D, 14D,
 
 ## Build from source
 
+### Telegram chat bot
+
+The feature/telegram-chat-bot branch includes a command-based Telegram bot with wallet detection in group messages, AML reports, transaction filters, charts, exports and private address watches. On Windows, open bot/start-local.cmd for a local launch with hidden token input. See [bot setup and commands](docs/TELEGRAM_BOT.md).
+
 ### Shared server mode
 
 New desktop builds use the shared API at `https://blockradia-api.onrender.com`, so desktop users do not need provider keys. The backend, Docker image, and Render deployment configuration are included. See [deployment and desktop configuration](docs/SHARED_SERVER.md). The free preview server can take about a minute to wake after inactivity. Server hosting does not change provider plan restrictions.
