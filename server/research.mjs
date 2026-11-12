@@ -16,11 +16,19 @@ async function download(url,max=60000000){
 export function parseOFAC(bytes){
  const text=bytes.toString('utf8');
  if(/<!DOCTYPE|<!ENTITY/i.test(text)||XMLValidator.validate(text)!==true)throw Error('Invalid sanctions XML');
- const root=new XMLParser({parseTagValue:false,processEntities:true,removeNSPrefix:true}).parse(text).sdnList;
- if(!root)throw Error('Unknown sanctions format');
- const records=list(root.sdnEntry).flatMap(entry=>list(entry.idList?.id).filter(id=>String(id.idType).startsWith('Digital Currency Address - ')).map(id=>({currency:id.idType.slice('Digital Currency Address - '.length).trim(),address:String(id.idNumber||'').trim(),entity:[entry.firstName,entry.lastName].filter(Boolean).join(' '),uid:String(entry.uid),programs:list(entry.programList?.program)})));
+ if(!/<(?:[\w.-]+:)?sdnList(?:\s|>)/.test(text))throw Error('Unknown sanctions format');
+ const parser=new XMLParser({parseTagValue:false,processEntities:true,removeNSPrefix:true});
+ const records=[];
+ // Parse only one relevant entry at a time: the complete SDN object exceeds small server heaps.
+ const entries=/<(?:[\w.-]+:)?sdnEntry\b[^>]*>[\s\S]*?<\/(?:[\w.-]+:)?sdnEntry\s*>/g;
+ for(const match of text.matchAll(entries)){
+  if(!match[0].includes('Digital Currency Address'))continue;
+  const entry=parser.parse(match[0]).sdnEntry;
+  records.push(...list(entry.idList?.id).filter(id=>String(id.idType).startsWith('Digital Currency Address - ')).map(id=>({currency:id.idType.slice('Digital Currency Address - '.length).trim(),address:String(id.idNumber||'').trim(),entity:[entry.firstName,entry.lastName].filter(Boolean).join(' '),uid:String(entry.uid),programs:list(entry.programList?.program)})));
+ }
  if(!records.length||records.some(r=>!r.address||!r.entity||!/^\d+$/.test(r.uid)))throw Error('Incomplete sanctions export');
- return {source:bundled.source,retrievedAt:new Date().toISOString(),publishedAt:root.publshInformation?.Publish_Date||null,sha256:createHash('sha256').update(bytes).digest('hex'),records};
+ const publication=text.match(/<(?:[\w.-]+:)?publshInformation\b[^>]*>[\s\S]*?<\/(?:[\w.-]+:)?publshInformation\s*>/)?.[0];
+ return {source:bundled.source,retrievedAt:new Date().toISOString(),publishedAt:publication?parser.parse(publication).publshInformation?.Publish_Date||null:null,sha256:createHash('sha256').update(bytes).digest('hex'),records};
 }
 export function updateAML(){
  if(refreshing||Date.now()-lastAttempt<3600000)return refreshing;
