@@ -30,6 +30,7 @@ async function explorer(network,action,address='',options={}){
 }
 
 const commands=[
+ ['portfolio','Портфель по сетям'],['compare','Сравнить кошельки'],['changes','Что изменилось'],['rule','Правила уведомлений'],['aml_update','Обновить базы AML'],
  ['start','Открыть меню бота'],['help','Все команды'],
  ['wallet','Баланс и проверка кошелька'],['tx','Проверить транзакцию'],
  ['network','Обзор сети'],['history','История и фильтры'],

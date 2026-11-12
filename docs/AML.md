@@ -28,3 +28,7 @@ Source documentation: https://ofac.treasury.gov/sanctions-list-service
 Additional snapshot provenance and raw-file SHA-256 are stored in lib/aml-additional.json. MIT attribution and license texts are retained in AML_DATA_LICENSES.md. These snapshots are bundled; installed apps do not automatically refresh them.
 
 Red means a fresh, direct OFAC address match whose currency tag matches the selected network. Yellow means a historical/community report, counterparty exposure, ambiguous network, stale sanctions snapshot, unavailable coverage, empty sample, or incomplete history loading. Green means no signals in the checked sample and fresh OFAC checks for that network; it does not mean safe or globally screened. Historical community data cannot establish absence of current scam activity. No numeric probability or AML score is fabricated. Every exported report contains the color, reason and underlying source findings.
+
+## Runtime updates
+
+Updated desktop and bot builds also request the shared API AML feed. The updated API refreshes OFAC and additional address sources hourly. The bundled files remain a fallback. Each source retains its own retrieval date. See [research workspace](RESEARCH_WORKSPACE.md) for runtime coverage and deployment. Earlier snapshot import commands apply to the bundled fallback files.

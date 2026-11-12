@@ -1,6 +1,7 @@
 FROM node:22-alpine
 WORKDIR /app
-COPY package.json package.json
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts
 COPY app/api/explorer/route.ts app/api/explorer/route.ts
 COPY lib/solana-throttle.ts lib/solana-throttle.ts
 COPY lib/remote-explorer.ts lib/remote-explorer.ts
@@ -10,6 +11,7 @@ COPY lib/network-statistics.ts lib/network-statistics.ts
 COPY lib/network-fees.ts lib/network-fees.ts
 COPY lib/market-data.ts lib/market-data.ts
 COPY lib/exchange-candles.ts lib/exchange-candles.ts
+COPY lib/ lib/
 COPY server/ server/
 USER node
 ENV NODE_ENV=production PORT=8080
