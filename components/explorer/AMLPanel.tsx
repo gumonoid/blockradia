@@ -1,5 +1,5 @@
 'use client';
-import {useMemo,useState} from 'react';
+import {useMemo,useState,useEffect} from 'react';
 import {downloadReportPDF} from '../../lib/pdf-download';
 import {useI18n} from '../../lib/i18n';
 import {analyzeAML} from '../../lib/aml';
@@ -9,7 +9,9 @@ import {additionalSignals,amlStatus} from '../../lib/aml-status';
 export default function AMLPanel({network,address,bundle,onVisit}:{network:string;address:string;bundle:any;onVisit:(address:string)=>void}){
  const {language}=useI18n();
  const w=(en:string,ru:string,zh:string)=>language==='ru'?ru:language==='zh'?zh:en;
- const report=useMemo(()=>analyzeAML(network,address,bundle.transfers||[]),[network,address,bundle.transfers]);
+ const [amlVersion,setAMLVersion]=useState(0);
+ useEffect(()=>{const update=()=>setAMLVersion(v=>v+1);window.addEventListener('blockradia-aml-updated',update);return()=>window.removeEventListener('blockradia-aml-updated',update);},[]);
+ const report=useMemo(()=>analyzeAML(network,address,bundle.transfers||[]),[network,address,bundle.transfers,amlVersion]);
  const known=report.counterparties.filter(p=>p.exchange);
  const [exporting,setExporting]=useState(false),[exportError,setExportError]=useState('');
  const signals=[{address,signals:additionalSignals(network,address)},...report.counterparties.map(p=>({address:p.address,signals:additionalSignals(network,p.address)}))].filter(p=>p.signals.length);
