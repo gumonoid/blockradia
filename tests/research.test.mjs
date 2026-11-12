@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 import {coverage,compareWallets,researchSnapshot,changesSince,matchesAlert} from '../lib/research.ts';
 import {parseOFAC,portfolio} from '../server/research.mjs';
 test('comparison reports only observed direct and common counterparties',()=>{
@@ -24,6 +25,17 @@ test('official XML parser extracts address identifiers and rejects entity declar
  assert.equal(parseOFAC(Buffer.from(xml)).records[0].uid,'1');
  assert.throws(()=>parseOFAC(Buffer.from('<!DOCTYPE x [<!ENTITY a SYSTEM "file:///secret">]>'+xml)));
  assert.throws(()=>parseOFAC(Buffer.from('<sdnList/>')));
+ assert.throws(()=>parseOFAC(Buffer.from(xml.replace('</idList>',''))));
+});
+
+test('large sanctions exports fit a 128 MB heap without building the entire SDN tree',()=>{
+ const moduleURL=new URL('../server/research.mjs',import.meta.url).href;
+ const script=`import {parseOFAC} from ${JSON.stringify(moduleURL)};
+ const ordinary='<sdnEntry><uid>2</uid><lastName>Other entity</lastName><remarks>'+ 'x'.repeat(1000)+'</remarks></sdnEntry>';
+ const digital='<sdnEntry><uid>1</uid><lastName>Test</lastName><idList><id><idType>Digital Currency Address - ETH</idType><idNumber>0x123</idNumber></id></idList></sdnEntry>';
+ const data=parseOFAC(Buffer.from('<sdnList>'+ordinary.repeat(25000)+digital+'</sdnList>'));
+ if(data.records.length!==1||data.records[0].uid!=='1')throw Error('Missing sanctions record');`;
+ execFileSync(process.execPath,['--max-old-space-size=128','--experimental-strip-types','--input-type=module','--eval',script],{timeout:20000,stdio:'pipe'});
 });
 
 test('portfolio keeps exact token quantities and explicitly counts unpriced assets',async()=>{
