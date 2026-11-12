@@ -1,9 +1,10 @@
 import sources from './aml-additional.json' with {type:'json'};
 import {screenSanctions} from './sanctions.ts';
+import {currentAdditionalSources} from './aml-refresh.ts';
 const evm=['ethereum','base','arbitrum','optimism','polygon'];
 export function additionalSignals(network:string,address:string){
  if(!evm.includes(network))return [];
- return sources.flatMap(s=>s.records.filter(r=>r.address===address.toLowerCase()).map(r=>({...r,source:s.source,name:s.name,kind:s.kind,retrievedAt:s.retrievedAt,sha256:s.sha256,scope:s.scope==='ethereum'&&network==='ethereum'?'network_match':'network_unconfirmed'})));
+ return currentAdditionalSources().flatMap(s=>s.records.filter(r=>r.address===address.toLowerCase()).map(r=>({...r,source:s.source,name:s.name,kind:s.kind,retrievedAt:s.retrievedAt,sha256:s.sha256,scope:s.scope==='ethereum'&&network==='ethereum'?'network_match':'network_unconfirmed'})));
 }
 type Screening=ReturnType<typeof screenSanctions>;
 export function amlStatus(root:Screening,peers:Screening[],additionalCount:number,incomplete:boolean){

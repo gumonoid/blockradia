@@ -2,6 +2,7 @@ import {analyzeAML} from '../lib/aml.ts';
 import {additionalSignals,amlStatus} from '../lib/aml-status.ts';
 import {csvCell} from '../lib/csv.ts';
 import {largeTransfers} from '../lib/large-transfers.ts';
+import {coverage} from '../lib/research.ts';
 import {displayWalletAddress} from '../lib/wallet-address.ts';
 import {networks,units,escapeHTML as esc,short,explorerLink} from './networks.mjs';
 
@@ -16,7 +17,7 @@ export function walletText(network,address,bundle,price,label){
  const chain=networks[network],balance=units(bundle.data?.coin_balance,chain.decimals);
  const value=Number(balance)*Number(price);
  const usd=balance!=='—'&&price!=null&&Number.isFinite(value)?' ≈ $'+value.toLocaleString('en-US',{maximumFractionDigits:2}):'';
- const aml=amlReport(network,address,bundle);
+ const aml=amlReport(network,address,bundle),sample=coverage(bundle);
  const status={green:'🟢',yellow:'🟡',red:'🔴'}[aml.rating.color];
  const warnings=[...(bundle.warnings||[]),...(bundle.history_error?[bundle.history_error]:[])];
  const text=[
@@ -28,6 +29,7 @@ export function walletText(network,address,bundle,price,label){
   'Transfers: '+(bundle.transfers?.length||0),
   status+' AML · '+esc(aml.rating.reason.replaceAll('_',' ')),
   'Source: '+esc(bundle.source_name||'—'),
+  'Loaded dates: '+esc(sample.from||'—')+' - '+esc(sample.to||'—')+' · '+(sample.partial?'PARTIAL':'sample'),
   'Checked: '+new Date().toISOString()+' (UTC)',
   ...warnings.slice(0,3).map(w=>'⚠ '+esc(String(w).slice(0,220))),
   '<a href="'+esc(explorerLink(network,address))+'">Explorer</a>',

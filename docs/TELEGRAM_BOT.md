@@ -9,7 +9,7 @@ This branch runs BlockRadia as a Telegram chat bot. Wallet cards, transaction li
 - Native balance with approximate USD valuation, exchange attribution, source names, timestamps and coverage warnings.
 - History pagination in groups of ten, up to 100 loaded transactions, confirmed/pending views, existing large-transfer thresholds, incoming/outgoing and text filters.
 - Transaction lookup, dated archive queries, network overview, current fees and price timeframes.
-- AML with the same OFAC and additional snapshots, evidence links and green/yellow/red status as the desktop version. Source freshness and coverage limitations remain visible. Dataset refresh is maintainer-operated.
+- AML with the same OFAC and additional snapshots, evidence links and green/yellow/red status as the desktop version. Source freshness and coverage limitations remain visible. Sources refresh hourly on the updated shared API, with the last snapshot retained on failure.
 - Direct counterparty list, per-counterparty lookup buttons and PNG graph export.
 - Line charts, Kraken OHLC candlesticks with the candles argument, and activity charts via /activity. These are PNG images in chat.
 - Per-user recent wallets, nicknames, saved investigation snapshots, notes, JSON reports and configurable CSV columns.
@@ -90,3 +90,16 @@ npm test
 Tests exercise address detection, groups, EVM ambiguity, session ownership, callback actions, notification deduplication, persistence, export escaping and sanitized transport failures.
 
 References: [Telegram Bot API](https://core.telegram.org/bots/api), [privacy mode](https://core.telegram.org/bots/features#privacy-mode), [Render free services](https://render.com/docs/free), [Render disks](https://render.com/docs/disks).
+
+## Extended research commands
+
+See [research workspace](RESEARCH_WORKSPACE.md) for portfolio, comparison, changes, coverage and alert rules.
+
+~~~text
+/portfolio add ethereum 0x28c6c06298d514db089934071355e5743bf21d60
+/portfolio
+/compare ethereum first_address second_address
+/changes
+/rule 1 USDT 100 in
+/aml_update
+~~~

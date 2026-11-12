@@ -30,6 +30,7 @@ function harness(){
   reads.push({network,action,address});
   if(action==='market')return {price:100};
   if(action==='balance')return {data:{coin_balance:'0'}};
+  if(action==='portfolio')return {assets:[{asset:'native',symbol:'BTC',balance:'1',usd:100}],knownUSD:100,unpriced:0,source:'fixture'};
   return data;
  };
  const bot=createBot({api,store,explorer,username:'BlockRadiaTestBot'});
@@ -191,4 +192,24 @@ test('wallet retains real balance when its history provider fails',async()=>{
   assert(messages.at(-1).text.includes('<b>1 BTC</b>'));
   assert(messages.at(-1).text.includes('History unavailable'));
  }finally{store.close();}
+});
+
+test('portfolio, comparison, changes and alert rules use the bot command entry point',async()=>{
+ const h=harness();
+ try{
+  await h.bot.handle(h.message('/portfolio add bitcoin '+wallet));
+  await h.bot.handle(h.message('/portfolio'));
+  assert(h.calls.some(c=>c.body.text?.includes('Known USD total: $100.00')));
+  await h.bot.handle(h.message('/compare bitcoin '+wallet+' '+peer));
+  assert(h.calls.some(c=>c.body.text?.includes('Direct transfers: 1')));
+  await h.bot.handle(h.message('/watch bitcoin '+wallet));
+  await h.bot.handle(h.message('/rule 1 USDT 100 in'));
+  assert.equal(h.store.get('user:1:watches')[0].rule.minimum,'100');
+ }finally{h.store.close();}
+ const second=harness();
+ try{
+  await second.bot.handle(second.message(wallet));
+  await second.bot.handle(second.message('/changes'));
+  assert(second.calls.at(-1).body.text.includes('baseline'));
+ }finally{second.store.close();}
 });

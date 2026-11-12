@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node --experimental-strip-types desktop/build.mjs",
     "check": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs tests/overview.test.mjs tests/exchanges.test.mjs tests/tron.test.mjs tests/solana-recovery.test.mjs tests/solana-throttle.test.mjs tests/evm-access.test.mjs tests/gateway.test.mjs tests/alchemy.test.mjs tests/network-statistics.test.mjs tests/large-transfers.test.mjs tests/chart-sample.test.mjs tests/network-fees.test.mjs tests/market-data.test.mjs tests/exchange-candles.test.mjs tests/ton-threshold.test.mjs tests/wallet-address.test.mjs tests/table-filters.test.mjs tests/bitcoin-dates.test.mjs tests/archive-history.test.mjs tests/security.test.mjs tests/aml.test.mjs tests/sanctions.test.mjs tests/aml-status.test.mjs tests/telegram-bot.test.mjs tests/pdf-reports.test.mjs",
+    "test": "node --experimental-strip-types --test tests/explorer.test.mjs tests/timeouts.test.mjs tests/overview.test.mjs tests/exchanges.test.mjs tests/tron.test.mjs tests/solana-recovery.test.mjs tests/solana-throttle.test.mjs tests/evm-access.test.mjs tests/gateway.test.mjs tests/alchemy.test.mjs tests/network-statistics.test.mjs tests/large-transfers.test.mjs tests/chart-sample.test.mjs tests/network-fees.test.mjs tests/market-data.test.mjs tests/exchange-candles.test.mjs tests/ton-threshold.test.mjs tests/wallet-address.test.mjs tests/table-filters.test.mjs tests/bitcoin-dates.test.mjs tests/archive-history.test.mjs tests/security.test.mjs tests/aml.test.mjs tests/sanctions.test.mjs tests/aml-status.test.mjs tests/telegram-bot.test.mjs tests/pdf-reports.test.mjs tests/research.test.mjs",
     "server:start": "node --experimental-strip-types server/start.mjs",
     "desktop:install": "npm ci --prefix desktop",
     "start": "npm run build && npm --prefix desktop start",
@@ -25,7 +25,8 @@
     "lucide-react": "1.31.0",
     "pdf-lib": "1.17.1",
     "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react-dom": "19.2.6",
+    "fast-xml-parser": "5.12.0"
   },
   "devDependencies": {
     "@types/node": "22.19.19",
