@@ -98,25 +98,28 @@ export function createBot({api,store,explorer,username}){
    bundle.data={...bundle.data,coin_balance:balance.value.data?.coin_balance};
   }
   await refreshAML(()=>explorer(network,'aml','')).catch(()=>{});
-  const evidence=amlReport(network,address,bundle);
-  const snapshots=store.get(userKey(owner,'snapshots'),{}),snapshotKey=network+':'+address;
-  const nextSnapshot=researchSnapshot(bundle,{...evidence.report,additionalSignals:evidence.signals});
-  const changes=changesSince(snapshots[snapshotKey],nextSnapshot);
-  store.set(userKey(owner,'changes'),{network,address,...changes,coverage:coverage(bundle)});
-  if(!coverage(bundle).partial){
-   delete snapshots[snapshotKey];snapshots[snapshotKey]=nextSnapshot;
-   store.set(userKey(owner,'snapshots'),Object.fromEntries(Object.entries(snapshots).slice(-30)));
-  }
   const id=session(owner,chat,network,address,bundle);
-  const item={network,address,at:new Date().toISOString()};
-  const recent=store.get(userKey(owner,'recent'),[]).filter(r=>r.network!==network||r.address!==address);
-  store.set(userKey(owner,'recent'),[item,...recent].slice(0,30));
-  store.set(userKey(owner,'last'),id);
+  let changes;
+  if(chat.type==='private'){
+   const evidence=amlReport(network,address,bundle);
+   const snapshots=store.get(userKey(owner,'snapshots'),{}),snapshotKey=network+':'+address;
+   const nextSnapshot=researchSnapshot(bundle,{...evidence.report,additionalSignals:evidence.signals});
+   changes=changesSince(snapshots[snapshotKey],nextSnapshot);
+   store.set(userKey(owner,'changes'),{network,address,...changes,coverage:coverage(bundle)});
+   if(!coverage(bundle).partial){
+    delete snapshots[snapshotKey];snapshots[snapshotKey]=nextSnapshot;
+    store.set(userKey(owner,'snapshots'),Object.fromEntries(Object.entries(snapshots).slice(-30)));
+   }
+   const item={network,address,at:new Date().toISOString()};
+   const recent=store.get(userKey(owner,'recent'),[]).filter(r=>r.network!==network||r.address!==address);
+   store.set(userKey(owner,'recent'),[item,...recent].slice(0,30));
+   store.set(userKey(owner,'last'),id);
+  }
   if(view==='wallet'){
    const market=await explorer(network,'market','',{period:'24Ч'}).catch(()=>null);
-   const labels=store.get(userKey(owner,'labels'),{});
+   const labels=changes?store.get(userKey(owner,'labels'),{}):{};
    const labelKey=network+':'+(['ethereum','base','arbitrum','polygon','optimism'].includes(network)?address.toLowerCase():address);
-   await say(chat,walletText(network,address,bundle,market?.price,labels[labelKey])+'\n'+(changes.baseline?'First check / Исходная проверка':'New in sample: '+changes.newHashes.length+' · Labels changed: '+changes.labelsChanged),{reply_markup:keyboard(id,network,address)});
+   await say(chat,walletText(network,address,bundle,market?.price,labels[labelKey])+(changes?'\n'+(changes.baseline?'First check / Исходная проверка':'New in sample: '+changes.newHashes.length+' · Labels changed: '+changes.labelsChanged):''),{reply_markup:keyboard(id,network,address)});
   }else await render(chat,owner,{network,address,bundle},id,view,filter);
  }
 
