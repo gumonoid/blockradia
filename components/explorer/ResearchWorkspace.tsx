@@ -1,4 +1,5 @@
 'use client';
+import {investigationStorage} from '../../lib/investigation-storage';
 import {useEffect,useRef,useState} from 'react';
 import {fetchExplorer} from '../../lib/explorer-client';
 import {coverage,compareWallets,researchSnapshot,changesSince} from '../../lib/research';
@@ -9,16 +10,16 @@ import {useWords} from './ResearchTools';
 export default function ResearchWorkspace({network,address,bundle,onOpen}:{network:string;address:string;bundle:any;onOpen:(address:string)=>void}){
  const w=useWords(),[wallets,setWallets]=useState<{network:string;address:string}[]>([]),[portfolio,setPortfolio]=useState<any[]>([]),[comparison,setComparison]=useState<any>(null),[other,setOther]=useState(''),[change,setChange]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[amlState,setAMLState]=useState('');
  const last=useRef<any>(null),info=coverage(bundle),abort=useRef<AbortController|null>(null);
- useEffect(()=>{try{const data=JSON.parse(localStorage.getItem('blockradia-portfolio')||'[]');if(Array.isArray(data))setWallets(data.filter(r=>typeof r.address==='string'&&typeof r.network==='string').slice(0,20));}catch{}return()=>abort.current?.abort();},[]);
+ useEffect(()=>{try{const data=JSON.parse(investigationStorage.getItem('blockradia-portfolio')||'[]');if(Array.isArray(data))setWallets(data.filter(r=>typeof r.address==='string'&&typeof r.network==='string').slice(0,20));}catch{}return()=>abort.current?.abort();},[]);
  useEffect(()=>{
   if(bundle.history_loading||last.current===bundle)return;
   last.current=bundle;
   try{
-   const key='blockradia-research-snapshots',data=JSON.parse(localStorage.getItem(key)||'{}'),id=network+':'+address;
+   const key='blockradia-research-snapshots',data=JSON.parse(investigationStorage.getItem(key)||'{}'),id=network+':'+address;
    const next=researchSnapshot(bundle,analyzeAML(network,address,bundle.transfers||[]));
    setChange(changesSince(data[id],next));
    // Failed history is not a new baseline.
-   if(!info.partial){delete data[id];data[id]=next;localStorage.setItem(key,JSON.stringify(Object.fromEntries(Object.entries(data).slice(-30))));}
+   if(!info.partial){delete data[id];data[id]=next;investigationStorage.setItem(key,JSON.stringify(Object.fromEntries(Object.entries(data).slice(-30))));}
   }catch{setError(w('Could not save the comparison baseline.','Не удалось сохранить исходную проверку.','无法保存基线。'));}
  },[bundle,network,address]);
  useEffect(()=>{setComparison(null);setOther('');},[network,address]);
@@ -27,7 +28,7 @@ export default function ResearchWorkspace({network,address,bundle,onOpen}:{netwo
   catch{setAMLState(w('Update failed; source dates remain visible in AML.','Обновление не удалось; проверьте даты источников в AML.','更新失败，请查看来源日期。'));}
  }
  useEffect(()=>{void updateAML();const timer=setInterval(()=>void updateAML(),60000);return()=>clearInterval(timer);},[]);
- function saveWallets(next:typeof wallets){try{localStorage.setItem('blockradia-portfolio',JSON.stringify(next));setWallets(next);}catch{setError(w('Storage unavailable','Хранилище недоступно','存储不可用'));}}
+ function saveWallets(next:typeof wallets){try{investigationStorage.setItem('blockradia-portfolio',JSON.stringify(next));setWallets(next);}catch{setError(w('Storage unavailable','Хранилище недоступно','存储不可用'));}}
  async function loadPortfolio(){
   abort.current?.abort();const controller=new AbortController();abort.current=controller;
   setBusy(true);setError('');const result=[];

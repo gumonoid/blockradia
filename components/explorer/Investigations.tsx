@@ -1,3 +1,4 @@
+import {investigationStorage} from '../../lib/investigation-storage';
 import {useEffect,useState} from 'react';
 import {importInvestigation} from '../../lib/investigation-import';
 import {downloadReportPDF} from '../../lib/pdf-download';
@@ -5,8 +6,8 @@ import {useWords} from './ResearchTools';
 export default function Investigations({capture,restore}:{capture:()=>any;restore:(data:any)=>void}){
  const [exporting,setExporting]=useState('');
  const w=useWords(),[rows,setRows]=useState<any[]>([]),[name,setName]=useState(''),[notes,setNotes]=useState(''),[error,setError]=useState('');
- useEffect(()=>{try{const saved=JSON.parse(localStorage.getItem('blockradia-investigations')||'[]');if(Array.isArray(saved))setRows(saved)}catch{}},[]);
- function save(next:any[]){try{localStorage.setItem('blockradia-investigations',JSON.stringify(next));setRows(next);setError('')}catch{setError(w('Storage is full. Export or delete old projects.','Хранилище заполнено. Экспортируйте или удалите старые проекты.','存储已满，请导出或删除旧项目。'))}}
+ useEffect(()=>{try{const saved=JSON.parse(investigationStorage.getItem('blockradia-investigations')||'[]');if(Array.isArray(saved))setRows(saved)}catch{}},[]);
+ function save(next:any[]){try{investigationStorage.setItem('blockradia-investigations',JSON.stringify(next));setRows(next);setError('')}catch{setError(w('Storage is full. Export or delete old projects.','Хранилище заполнено. Экспортируйте или удалите старые проекты.','存储已满，请导出或删除旧项目。'))}}
  function download(row:any){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(row,null,2)],{type:'application/json'}));a.href=url;a.download='blockradia-investigation.json';a.click();URL.revokeObjectURL(url)}
  async function downloadPDF(row:any){
   setExporting(row.id);setError('');
