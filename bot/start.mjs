@@ -1,3 +1,4 @@
+import {processBatch} from './batch.mjs';
 import http from 'node:http';
 import {resolve} from 'node:path';
 import {BotStore} from './store.mjs';
@@ -78,8 +79,7 @@ try{
    const offset=store.get('poll-offset',0);
    const updates=await api('getUpdates',{offset,timeout:25,limit:10,allowed_updates:['message','callback_query']});
    lastPoll=Date.now();
-   for(const update of updates){
-    if(!running)break;
+   await processBatch(updates,async update=>{
     try{await bot.handle(update);}
     catch(error){
      const chat=update.message?.chat||update.callback_query?.message?.chat;
@@ -88,10 +88,7 @@ try{
      }
      console.error('Update failed: '+(error.status||'data or transport'));
     }
-    // Advance only after processing. An interrupted send can be delivered again.
-    store.set('poll-offset',update.update_id+1);
-    lastPoll=Date.now();
-   }
+   },next=>store.set('poll-offset',next));
   }catch(error){
    if(error.status===409)throw Error('Another bot process or webhook is receiving updates. Run only one polling instance.');
    if(error.status===401)throw Error('Telegram token was rejected. Update the server secret.');

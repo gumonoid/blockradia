@@ -48,7 +48,10 @@ ipcMain.handle('watch-in-background',(event,enabled,language)=>{
  window.webContents.setBackgroundThrottling(!tray);
  return !!tray;
 });
-window.on('close',event=>{if(tray&&!quitting){event.preventDefault();window.hide();}});
+window.on('close',event=>{if(tray&&!quitting){
+ if(new URL(window.webContents.getURL()||origin).searchParams.get('private')==='1'){app.quit();return;}
+ event.preventDefault();window.hide();
+ }});
 
 let htmlFullscreen=false,exitRequested=false,graphOwnsWindow=false;
 const fullscreen=()=>window.isFullScreen()||(isMac&&window.isSimpleFullScreen())||htmlFullscreen;

@@ -213,3 +213,31 @@ test('portfolio, comparison, changes and alert rules use the bot command entry p
   assert(second.calls.at(-1).body.text.includes('baseline'));
  }finally{second.store.close();}
 });
+
+test('group wallet cards keep personal nicknames and previous lookups private',async()=>{
+ const {bot,store,message,calls}=harness();
+ await bot.handle(message('/label bitcoin '+wallet+' PrivateAlias'));
+ await bot.handle(message('/wallet bitcoin '+wallet));
+ assert.match(calls.at(-1).body.text,/PrivateAlias/);
+ const previous=store.get('user:1:last');
+ await bot.handle(message('/wallet bitcoin '+wallet,{chat:-42,type:'supergroup'}));
+ assert.doesNotMatch(calls.at(-1).body.text,/PrivateAlias|First check|New in sample/);
+ assert.equal(store.get('user:1:last'),previous);
+ store.close();
+});
+
+test('independent chats progress while earlier updates keep their offset',async()=>{
+ const {processBatch}=await import('../bot/batch.mjs');
+ const done=[],offsets=[];
+ let release;
+ const waiting=new Promise(resolve=>{release=resolve});
+ const updates=[10,11,12].map((update_id,i)=>({update_id,message:{chat:{id:i===1?2:1}}}));
+ const pending=processBatch(updates,async u=>{
+   if(u.update_id===10)await waiting;
+   done.push(u.update_id);
+ },offset=>offsets.push(offset));
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.deepEqual(done,[11]);assert.deepEqual(offsets,[]);
+ release();await pending;
+ assert.deepEqual(done,[11,10,12]);assert.deepEqual(offsets,[12,13]);
+});
