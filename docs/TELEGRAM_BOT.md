@@ -103,3 +103,9 @@ See [research workspace](RESEARCH_WORKSPACE.md) for portfolio, comparison, chang
 /rule 1 USDT 100 in
 /aml_update
 ~~~
+
+### Bot administrator panel
+
+Send `/myid` to the bot in a private chat. Set `TELEGRAM_ADMIN_IDS` to your numeric Telegram ID on the machine running the bot (comma-separated IDs for multiple admins), then restart it. Send `/admin` in your private chat to view aggregate storage statistics or prune expired sessions. The panel is disabled when no IDs are configured. The user count includes only users with saved data.
+
+The panel lists user IDs with stored data and groups with an explicit automatic lookup setting, eight per page. Diagnostics show process uptime, memory usage, explorer request failures, and rate-limit events since startup. The AML section shows locally loaded snapshots and can refresh them from the shared API. The per-chat limit can be set to 3, 6, or 12 actions per minute and persists across restarts. Session cleanup asks for confirmation.

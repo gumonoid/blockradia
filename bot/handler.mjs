@@ -1,3 +1,4 @@
+import {createAdminPanel} from './admin.mjs';
 import {randomBytes} from 'node:crypto';
 import {networks,candidates,extractAddresses,units,escapeHTML as esc,short,explorerLink} from './networks.mjs';
 import {walletText,transactionRows,historyText,amlText,amlReport,csvReport,graphSVG,priceSVG} from './reports.mjs';
@@ -44,7 +45,9 @@ const networkName=value=>aliases[value?.toLowerCase()]||value?.toLowerCase();
 const group=chat=>chat.type==='group'||chat.type==='supergroup';
 const safeRows=bundle=>(bundle.transactions||[]).slice(0,200);
 
-export function createBot({api,store,explorer,username}){
+export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''}){
+ const admins=new Set(adminIds.split(',').map(id=>id.trim()).filter(id=>/^[1-9][0-9]*$/.test(id)));
+ const isAdmin=(chat,owner)=>chat?.type==='private'&&chat.id===owner&&admins.has(String(owner));
  const quotas=new Map();
  const userKey=(id,name)=>'user:'+id+':'+name;
  const say=(chat,text,extra={})=>{
@@ -54,6 +57,12 @@ export function createBot({api,store,explorer,username}){
   const content=long?text.replace(/<[^>]*>/g,'').replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&quot;','"').replaceAll('&amp;','&').slice(0,3900)+'\n… /export':text;
   return api('sendMessage',{chat_id:chat.id,text:content,...(long?{}:{parse_mode:'HTML'}),link_preview_options:{is_disabled:true},...extra});
  };
+ const adminPanel=createAdminPanel({api,store,say,explorer});
+ async function explorer(...args){
+  adminPanel.metrics.requests++;
+  try{return await fetchExplorer(...args);}
+  catch(error){adminPanel.metrics.failures++;throw error;}
+ }
  const sendFile=(chat,name,content,type)=>api('sendDocument',{chat_id:chat.id},{name,content,type});
  const sendChart=(chat,name,svg)=>api('sendPhoto',{chat_id:chat.id},{name,content:renderPNG(svg),type:'image/png'});
 
@@ -61,7 +70,9 @@ export function createBot({api,store,explorer,username}){
   const now=Date.now(),key=String(chatId),entry=quotas.get(key);
   if(quotas.size>10000)for(const [id,q] of quotas)if(q.until<now)quotas.delete(id);
   if(!entry||entry.until<now){quotas.set(key,{count:1,until:now+60000});return true;}
-  return ++entry.count<=6;
+  if(++entry.count<=adminPanel.limit())return true;
+  adminPanel.metrics.throttled++;
+  return false;
  }
 
  function session(owner,chat,network,address,bundle){
@@ -190,6 +201,11 @@ export function createBot({api,store,explorer,username}){
  async function callback(update){
   const q=update.callback_query;
   await api('answerCallbackQuery',{callback_query_id:q.id});
+  if(q.data?.startsWith('admin:')){
+   const chat=q.message?.chat;
+   if(!isAdmin(chat,q.from?.id))return;
+   return adminPanel.show(chat,q.data.slice(6),q.message.message_id);
+  }
   const match=/^br:([0-9a-f]{16}):([a-z]+):([a-z0-9]*)$/.exec(q.data||'');
   if(!match||!q.message)return;
   const [,id,action,arg]=match,data=store.get('session:'+id),chat=q.message.chat,owner=q.from.id;
@@ -215,6 +231,15 @@ export function createBot({api,store,explorer,username}){
 
  async function command(message,owner,command,args){
   const chat=message.chat;
+  if(command==='myid'){
+   if(chat.type==='private')await say(chat,'Ваш Telegram ID: <code>'+owner+'</code>');
+   return;
+  }
+  if(command==='admin'){
+   if(isAdmin(chat,owner))return adminPanel.show(chat);
+   if(chat.type==='private')await say(chat,'Доступ к панели ограничен.');
+   return;
+  }
   if(['start','help'].includes(command)){
    await say(chat,help,{reply_markup:{inline_keyboard:[[{text:'Add to group / Добавить в группу',url:'https://t.me/'+username+'?startgroup=true'}]]}});
    return;
@@ -405,7 +430,7 @@ export function createBot({api,store,explorer,username}){
   const match=/^\/([a-z_]+)(?:@([a-z0-9_]+))?(?:\s+([\s\S]*))?$/i.exec(text.trim());
   if(match){
    if(match[2]&&match[2].toLowerCase()!==username.toLowerCase())return;
-   if(!allow(chat.id))return;
+   if(!(match[1].toLowerCase()==='admin'&&isAdmin(chat,owner))&&!allow(chat.id))return;
    await command(message,owner,match[1].toLowerCase(),(match[3]||'').trim().split(/\s+/).filter(Boolean));
    return;
   }
