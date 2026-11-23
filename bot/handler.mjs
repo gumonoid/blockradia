@@ -6,6 +6,7 @@ import {exchangeAddresses,getExchangeLabel} from '../lib/exchanges.ts';
 import {renderPNG} from './png.mjs';
 import {coverage,compareWallets,researchSnapshot,changesSince,matchesAlert} from '../lib/research.ts';
 import {refreshAML} from '../lib/aml-refresh.ts';
+import {validScannerFeed,amlExplanation} from '../lib/aml-review.ts';
 
 const help=[
  '<b>BlockRadia</b>',
@@ -96,9 +97,10 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
   if(!Object.hasOwn(networks,network)||!candidates(address).includes(network)){
    await say(chat,'Check the network and wallet address. Пример /wallet tron T…');return;
   }
-  const [history,balance]=await Promise.allSettled([
+  const [history,balance,scanner]=await Promise.allSettled([
    explorer(network,'address',address,{mode:network==='solana'?'extended':undefined}),
    explorer(network,'balance',address),
+   explorer(network,'aml-address',address),
   ]);
   if(history.status==='rejected'&&balance.status==='rejected')throw Error('Wallet sources unavailable');
   const bundle=history.status==='fulfilled'?history.value:{
@@ -108,6 +110,7 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
   if(balance.status==='fulfilled'&&bundle.data?.coin_balance==null){
    bundle.data={...bundle.data,coin_balance:balance.value.data?.coin_balance};
   }
+  bundle.scannerEvidence=scanner.status==='fulfilled'&&validScannerFeed(scanner.value,network,address)?scanner.value:null;
   await refreshAML(()=>explorer(network,'aml','')).catch(()=>{});
   const id=session(owner,chat,network,address,bundle);
   let changes;
@@ -137,6 +140,11 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
  async function render(chat,owner,data,id,view,filter={}){
   const {network,address,bundle}=data;
   if(view==='aml'){
+   if(!validScannerFeed(bundle.scannerEvidence,network,address)||Date.now()-Date.parse(bundle.scannerEvidence.checkedAt)>300000){
+    const fresh=await explorer(network,'aml-address',address).catch(()=>null);
+    bundle.scannerEvidence=validScannerFeed(fresh,network,address)?fresh:null;
+    store.set('session:'+id,{...data,bundle,owner,chat:chat.id,created:Date.now()});
+   }
    await say(chat,amlText(network,address,bundle),{reply_markup:keyboard(id,network,address)});
    return;
   }
@@ -154,7 +162,7 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
    const columns=store.get(userKey(owner,'columns'));
    await sendFile(chat,'blockradia-'+network+'.csv',csvReport(network,rows,columns||undefined),'text/csv');
    const report=amlReport(network,address,bundle);
-   await sendFile(chat,'blockradia-aml.json',JSON.stringify({network,address,...report,coverage:bundle.coverage,warnings:bundle.warnings},null,2),'application/json');
+   await sendFile(chat,'blockradia-aml.json',JSON.stringify({network,address,...report,explanation:amlExplanation(report),coverage:bundle.coverage,warnings:bundle.warnings},null,2),'application/json');
    return;
   }
   const status=['confirmed','pending','large'].includes(view)?view:filter.status||'all';
