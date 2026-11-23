@@ -22,3 +22,6 @@ Thumbs.db
 work/
 
 desktop/archive-history.mjs
+
+desktop/aml-scanners.mjs
+desktop/aml-scanner-types.mjs
