@@ -1,5 +1,6 @@
 'use client';
 import {useMemo,useState,useEffect} from 'react';
+import {fetchExplorer} from '../../lib/explorer-client';
 import {downloadReportPDF} from '../../lib/pdf-download';
 import {useI18n} from '../../lib/i18n';
 import {analyzeAML} from '../../lib/aml';
@@ -17,12 +18,11 @@ export default function AMLPanel({network,address,bundle,onVisit}:{network:strin
  useEffect(()=>{
   const controller=new AbortController();let cancelled=false;
   setScan(null);setScanLoading(true);setScanFailed(false);
-  const timer=setTimeout(()=>controller.abort(),75000);
-  fetch('/api/explorer?'+new URLSearchParams({network,action:'aml-address',q:address}),{signal:controller.signal})
-   .then(async response=>{if(!response.ok)throw Error('Scanner request failed');const data=await response.json();if(!validScannerFeed(data,network,address))throw Error('Invalid scanner response');if(!cancelled)setScan(data);})
+  fetchExplorer('/api/explorer?'+new URLSearchParams({network,action:'aml-address',q:address}),{signal:controller.signal,timeoutMs:75000})
+   .then(data=>{if(!validScannerFeed(data,network,address))throw Error('Invalid scanner response');if(!cancelled)setScan(data);})
    .catch(()=>{if(!cancelled)setScanFailed(true);})
-   .finally(()=>{clearTimeout(timer);if(!cancelled)setScanLoading(false);});
-  return()=>{cancelled=true;clearTimeout(timer);controller.abort();};
+   .finally(()=>{if(!cancelled)setScanLoading(false);});
+  return()=>{cancelled=true;controller.abort();};
  },[network,address,scanAttempt]);
  const review=useMemo(()=>buildAMLReview(network,address,bundle,scan),[network,address,bundle,scan,amlVersion]);
  const {report,rating,scanners}=review;

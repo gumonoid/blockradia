@@ -29,6 +29,10 @@ try{
   const u=new URL(route.request().url()),action=u.searchParams.get('action'),q=u.searchParams.get('q');
   let data={transactions:[],transfers:[],stats:{},chart:[]};
   if(action==='aml')data={ofac:{...ofac,retrievedAt:now},additional:additional.map(s=>({...s,retrievedAt:now}))};
+  if(action==='aml-address' && route.request().headers()['x-blockradia-client']!=='1'){
+   await route.fulfill({status:403,body:''});
+   return;
+  }
   if(action==='aml-address')data={network:u.searchParams.get('network'),address:q,checkedAt:now,sources:[
    {id:'goplus',name:'GoPlus Security',url:'https://api.gopluslabs.io/api/v1/address_security/'+q+'?chain_id=1',checkedAt:fail?null:now,status:fail?'unavailable':'ok',checks:fail?0:18,totalChecks:18,findings:fail?[]:[{code:'phishing_activities',label:'phishing activities',kind:'risk'}]},
    {id:'blockscout',name:'Blockscout',url:'https://eth.blockscout.com/address/'+q,checkedAt:now,status:'ok',checks:1,totalChecks:1,findings:[{code:'public_label',label:'Example public label',kind:'label'}]},
