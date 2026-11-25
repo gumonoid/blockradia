@@ -276,3 +276,15 @@ test('admin directory paginates, excludes wallet data, and enforces saved reques
  await click('aml');assert.match(calls.at(-1).body.text,/записей/);
  store.close();
 });
+
+test('group timezone commands cannot expose or modify a personal setting',async()=>{
+ const h=harness();
+ try{
+  await h.bot.handle(h.message('/timezone Europe/Kyiv'));
+  for(const command of ['/timezone','/timezone America/New_York']){
+   await h.bot.handle(h.message(command,{chat:-12,type:'supergroup'}));
+   assert.match(h.calls.at(-1).body.text,/Group history uses UTC/);
+   assert.equal(h.store.get('user:1:timezone'),'Europe/Kyiv');
+  }
+ }finally{h.store.close();}
+});

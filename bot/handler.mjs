@@ -174,7 +174,7 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
   if(page>0)buttons.push(button(id,'←','page',String(page-1)));
   if((page+1)*10<rows.length)buttons.push(button(id,'→','page',String(page+1)));
   const warning=bundle.partial_history||bundle.history_error?'⚠ Partial history / Неполная история\n'+esc(bundle.history_error||'Some operations may be missing.')+'\n\n':'';
-  await say(chat,warning+(rows.length?historyText(network,rows,page,store.get(userKey(owner,'timezone'),'UTC')):'No transactions in this loaded sample / Нет операций в этой выборке.'),{reply_markup:{inline_keyboard:[...(buttons.length?[buttons]:[]),[button(id,'Wallet','refresh'),button(id,'CSV / JSON','export')]]}});
+  await say(chat,warning+(rows.length?historyText(network,rows,page,chat.type==='private'?store.get(userKey(owner,'timezone'),'UTC'):'UTC'):'No transactions in this loaded sample / Нет операций в этой выборке.'),{reply_markup:{inline_keyboard:[...(buttons.length?[buttons]:[]),[button(id,'Wallet','refresh'),button(id,'CSV / JSON','export')]]}});
  }
 
  async function detect(chat,owner,address){
@@ -262,7 +262,7 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
    await say(chat,rows.length?rows.map(r=>'<b>'+esc(getExchangeLabel(r.network,r.address)?.name)+'</b> · '+esc(r.network)+'\n<code>'+esc(r.address)+'</code>\n<a href="'+esc(r.source)+'">Source</a> · '+esc(r.checkedAt)).join('\n\n'):'No exchange labels found.');return;
   }
   if(command==='aml_update'){
-   try{await refreshAML(()=>explorer('bitcoin','aml',''),true);await say(chat,'AML sources checked. Snapshot dates are shown in /aml.');}
+   try{await refreshAML(()=>explorer('bitcoin','aml',''));await say(chat,'AML sources checked. Snapshot dates are shown in /aml.');}
    catch{await say(chat,'AML update unavailable. Previous snapshots retained.');}return;
   }
   if(command==='changes'){
@@ -321,6 +321,7 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
    await say(chat,'Automatic wallet checks '+args[0]+'.');return;
   }
   if(command==='timezone'){
+   if(chat.type!=='private'){await say(chat,'Group history uses UTC. Manage your timezone in private chat.');return;}
    try{new Intl.DateTimeFormat('en',{timeZone:args[0]}).format();}
    catch{await say(chat,'Use an IANA timezone such as Europe/Kyiv or UTC.');return;}
    if(!args[0]){await say(chat,'Current timezone: '+esc(store.get(userKey(owner,'timezone'),'UTC')));return;}
@@ -452,32 +453,41 @@ export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''
   for(const [key,list] of store.watches()){
    const owner=Number(key.split(':')[1]);
    for(const watch of [...list]){
+    const sameSubscription=w=>w.network===watch.network&&w.address===watch.address&&w.createdAt===watch.createdAt;
     try{
      await refreshAML(()=>explorer(watch.network,'aml','')).catch(()=>{});
      const rootEvidence=amlReport(watch.network,watch.address,{transfers:[]});
      const rootSnapshot=researchSnapshot({}, {...rootEvidence.report,additionalSignals:rootEvidence.signals});
-     const currentWatches=store.get(key,[]),currentWatch=currentWatches.find(w=>w.network===watch.network&&w.address===watch.address);
+     const currentWatch=store.get(key,[]).find(sameSubscription);
      if(!currentWatch)continue;
      if(currentWatch.amlSnapshot&&changesSince(currentWatch.amlSnapshot,rootSnapshot).labelsChanged)await say({id:owner,type:'private'},'AML attribution changed · '+esc(watch.network)+'\n<code>'+esc(watch.address)+'</code>\n'+amlText(watch.network,watch.address,{transfers:[]}));
-     currentWatch.amlSnapshot=rootSnapshot;store.set(key,currentWatches);
+     const subscriptions=store.get(key,[]);
+     const subscribed=subscriptions.find(sameSubscription);
+     if(!subscribed)continue;
+     subscribed.amlSnapshot=rootSnapshot;
+     store.set(key,subscriptions);
      const data=await explorer(watch.network,'address',watch.address);
      if(data.history_error||data.partial_history)continue;
-     if(!store.get(key,[]).some(w=>w.network===watch.network&&w.address===watch.address))continue;
-     const rows=safeRows(data),seen=new Set(watch.seen);
-     const allowed=new Set((data.transfers||[]).filter(t=>matchesAlert({...watch.rule,network:watch.network},watch.address,t)).map(t=>t.hash));
-     const fresh=rows.filter(t=>!seen.has(t.hash)&&Number.isFinite(Date.parse(t.timestamp))&&Date.parse(t.timestamp)>=watch.createdAt&&(!watch.rule||allowed.has(t.hash)));
+     const activeWatch=store.get(key,[]).find(sameSubscription);
+     if(!activeWatch)continue;
+     const rows=safeRows(data),seen=new Set(activeWatch.seen);
+     const allowed=new Set((data.transfers||[]).filter(t=>matchesAlert({...activeWatch.rule,network:watch.network},watch.address,t)).map(t=>t.hash));
+     const fresh=rows.filter(t=>!seen.has(t.hash)&&Number.isFinite(Date.parse(t.timestamp))&&Date.parse(t.timestamp)>=watch.createdAt&&(!activeWatch.rule||allowed.has(t.hash)));
      if(fresh.length)await say({id:owner,type:'private'},'<b>Wallet activity / Активность кошелька</b>\n'+esc(watch.network)+'\n<code>'+esc(watch.address)+'</code>\n'+fresh.length+' new transactions in loaded sample.\n'+fresh.slice(0,3).map(t=>'<a href="'+esc(explorerLink(watch.network,t.hash,true))+'">'+esc(short(t.hash))+'</a>').join('\n'));
      // Re-read before saving, so /unwatch during an API call takes effect.
      const current=store.get(key,[]);
-     const item=current.find(w=>w.network===watch.network&&w.address===watch.address);
+     const item=current.find(sameSubscription);
      if(item){
-      item.seen=[...new Set([...rows.map(t=>t.hash),...watch.seen])].slice(0,500);
+      item.seen=[...new Set([...rows.map(t=>t.hash),...activeWatch.seen])].slice(0,500);
       item.checkedAt=new Date().toISOString();
 
       store.set(key,current);
      }
     }catch(error){
-     if(error.status===403)store.set(key,store.get(key,[]).filter(w=>w.network!==watch.network||w.address!==watch.address));
+     if(error.status===403){
+      const current=store.get(key,[]);
+      if(current.some(sameSubscription))store.set(key,current.filter(w=>!sameSubscription(w)));
+     }
     }
    }
   }
