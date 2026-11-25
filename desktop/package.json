@@ -32,6 +32,7 @@
       "service.json",
       "ui-dist/**/*",
       "api.mjs",
+      "bounded-json.mjs",
       "aml-scanners.mjs",
       "aml-scanner-types.mjs",
       "archive-history.mjs",

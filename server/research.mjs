@@ -1,3 +1,4 @@
+import {readBoundedJSON,portfolioResponseLimit} from '../lib/bounded-json.ts';
 import {XMLParser,XMLValidator} from 'fast-xml-parser';
 import {createHash} from 'node:crypto';
 import bundled from '../lib/ofac-snapshot.json' with {type:'json'};
@@ -54,19 +55,26 @@ export const amlFeed=()=>({ofac:snapshot,additional:extra,updateInProgress:!!ref
 async function json(url,body){
  const response=await fetch(url,{method:body?'POST':'GET',headers:body?{'Content-Type':'application/json'}:undefined,body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(12000)});
  if(!response.ok)throw Error('Token source unavailable');
- const data=await response.json();if(data.error)throw Error('Token source rejected request');return data;
+ const data=await readBoundedJSON(response,portfolioResponseLimit);if(data.error)throw Error('Token source rejected request');return data;
 }
 const hosts={ethereum:'eth',base:'base',arbitrum:'arbitrum',polygon:'polygon',optimism:'optimism'};
 const alchemy={ethereum:'eth',base:'base',arbitrum:'arb',polygon:'polygon',optimism:'opt'};
 function amount(raw,decimals){
- if(decimals==null||decimals===''||typeof raw==='number'&&!Number.isSafeInteger(raw)||!Number.isInteger(Number(decimals))||Number(decimals)<0||Number(decimals)>36||!/^\d+$/.test(String(raw)))throw Error('Unknown token precision');
+ if(String(raw).length>128||decimals==null||decimals===''||typeof raw==='number'&&!Number.isSafeInteger(raw)||!Number.isInteger(Number(decimals))||Number(decimals)<0||Number(decimals)>36||!/^\d+$/.test(String(raw)))throw Error('Unknown token precision');
  const d=Number(decimals),digits=String(raw).padStart(d+1,'0');
  return d?digits.slice(0,-d)+'.'+digits.slice(-d):digits;
 }
 async function tokenBalances(network,address){
  const q=encodeURIComponent(address);
  let rows=[],partial=false,source='';
- const convert=(values,build)=>values.flatMap(value=>{try{const row=build(value);if(typeof row.asset!=='string'||!row.asset)throw Error('Unknown asset');return [row];}catch{partial=true;return [];}});
+ let remaining=100;
+ const take=(values)=>{
+  if(values.length>remaining)partial=true;
+  const selected=values.slice(0,remaining);
+  remaining-=selected.length;
+  return selected;
+ };
+ const convert=(values,build)=>take(values).flatMap(value=>{try{const row=build(value);if(typeof row.asset!=='string'||!row.asset)throw Error('Unknown asset');return [row];}catch{partial=true;return [];}});
  if(hosts[network]){
   source='Blockscout token balances';
   try{
@@ -82,8 +90,8 @@ async function tokenBalances(network,address){
    const rpc=async(method,params)=>(await json(endpoint,{jsonrpc:'2.0',id:1,method,params})).result;
    const data=await rpc('alchemy_getTokenBalances',[address,'erc20',{maxCount:100}]);
    if(!Array.isArray(data?.tokenBalances))throw Error('Token balances unavailable');
-   const tokens=data.tokenBalances.filter(t=>!t.error&&/^0x[0-9a-f]+$/i.test(t.tokenBalance)&&BigInt(t.tokenBalance)>0n);
-   partial=!!data.pageKey||tokens.length>10;
+   const tokens=take(data.tokenBalances).filter(t=>!t.error&&/^0x[0-9a-f]{1,64}$/i.test(t.tokenBalance)&&BigInt(t.tokenBalance)>0n);
+   partial=partial||!!data.pageKey||tokens.length>10;
    await Promise.all(tokens.slice(0,10).map(async token=>{
     try{const meta=await rpc('alchemy_getTokenMetadata',[token.contractAddress]);rows.push({asset:token.contractAddress,symbol:meta.symbol||token.contractAddress,balance:amount(BigInt(token.tokenBalance).toString(),meta.decimals)});}
     catch{partial=true;}

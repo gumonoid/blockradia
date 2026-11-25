@@ -1,3 +1,4 @@
+import {readBoundedJSON,rpcResponseLimit} from '../../../lib/bounded-json.ts';
 import {collectScannerEvidence} from '../../../lib/aml-scanners.ts';
 import {archiveHistory} from '../../../lib/archive-history.ts';
 import {createSolanaThrottle} from '../../../lib/solana-throttle.ts';
@@ -129,7 +130,7 @@ try{return await abortable((async()=>{
   throw Object.assign(new Error(`${host}: HTTP ${response.status}`),{status:response.status,retryAfterMs,retryable:response.status===429||response.status>=500});
  }
  let data:any;
- try{data=await response.json();}catch{throw Error(host+': некорректный ответ источника');}
+ try{data=await readBoundedJSON(response,rpcResponseLimit);}catch{throw Error(host+': некорректный ответ источника');}
  if((Array.isArray(data?.error)?data.error.length>0:!!data?.error)||data?.Error||data?.success===false){
   // Provider diagnostics can echo credentials or arbitrary response content.
   const message=String(data.error?.message||data.Error||'');

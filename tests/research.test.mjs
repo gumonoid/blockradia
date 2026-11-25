@@ -48,3 +48,23 @@ test('portfolio keeps exact token quantities and explicitly counts unpriced asse
   assert.equal(data.assets[1].usd,null);assert.equal(data.knownUSD,2000);assert.equal(data.unpriced,1);
  }finally{globalThis.fetch=original;}
 });
+
+test('JSON limit counts streamed bytes without relying on headers',async()=>{
+ const {readBoundedJSON}=await import('../lib/bounded-json.ts');
+ let cancelled=false;
+ const stream=new ReadableStream({
+  pull(c){c.enqueue(new Uint8Array(8));},
+  cancel(){cancelled=true;}
+ });
+ await assert.rejects(readBoundedJSON(new Response(stream),12),RangeError);
+ assert.equal(cancelled,true);
+});
+test('portfolio truncation is visible even when prices are available',async()=>{
+ const original=globalThis.fetch;
+ globalThis.fetch=async()=>Response.json({trc20token_balances:Array.from({length:101},(_,i)=>({tokenId:'token'+i,tokenDecimal:6,balance:'1000000'}))});
+ try{
+  const result=await (await portfolio('tron','test',async()=>({data:{coin_balance:'0'},price:1}))).json();
+  assert.equal(result.partial,true);
+  assert.equal(result.assets.length,101);
+ }finally{globalThis.fetch=original;}
+});

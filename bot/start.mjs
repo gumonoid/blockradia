@@ -1,3 +1,4 @@
+import {readBoundedJSON,sharedResponseLimit} from '../lib/bounded-json.ts';
 import {collectScannerEvidence} from '../lib/aml-scanners.ts';
 import {processBatch} from './batch.mjs';
 import http from 'node:http';
@@ -26,7 +27,7 @@ async function explorer(network,action,address='',options={}){
  for(const [key,value] of Object.entries(options))if(value!==undefined)query.set(key,String(value));
  const response=await fetch(origin+'/api/explorer?'+query,{redirect:'error',signal:AbortSignal.timeout(70000)});
  if(action==='aml-address'&&[400,404].includes(response.status)){await response.body?.cancel();return collectScannerEvidence(network,address);}
- const data=await response.json().catch(()=>null);
+ const data=await readBoundedJSON(response,sharedResponseLimit(action)).catch(()=>null);
  lastPoll=Date.now();
  if(!response.ok||!data||data.error)throw Error('Blockchain data source temporarily unavailable.');
  return data;
