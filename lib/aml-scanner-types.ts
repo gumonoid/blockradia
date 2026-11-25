@@ -11,3 +11,6 @@ export const securityFlags = [
  'financial_crime','darkweb_transactions','fake_kyc','malicious_mining_activities',
  'gas_abuse','reinit','fake_standard_interface','fake_token',
 ] as const;
+
+export const chains:Record<string,string>={ethereum:'1',base:'8453',arbitrum:'42161',optimism:'10',polygon:'137',tron:'tron'};
+export const explorers:Record<string,string>={ethereum:'eth.blockscout.com',base:'base.blockscout.com',arbitrum:'arbitrum.blockscout.com',optimism:'optimism.blockscout.com',polygon:'polygon.blockscout.com'};

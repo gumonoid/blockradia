@@ -1,9 +1,7 @@
 // Server-side adapters. Provider URLs are fixed; keys never enter the report.
-import {securityFlags} from './aml-scanner-types.ts';
+import {securityFlags,chains,explorers} from './aml-scanner-types.ts';
 import type {ScannerFeed,ScannerSource,ScannerFinding} from './aml-scanner-types.ts';
 
-const chains:Record<string,string>={ethereum:'1',base:'8453',arbitrum:'42161',optimism:'10',polygon:'137',tron:'tron'};
-const explorers:Record<string,string>={ethereum:'eth.blockscout.com',base:'base.blockscout.com',arbitrum:'arbitrum.blockscout.com',optimism:'optimism.blockscout.com',polygon:'polygon.blockscout.com'};
 const clean=(value:unknown)=>typeof value==='string'?value.replace(/[\u0000-\u001f\u007f]/g,' ').slice(0,180):'';
 const object=(value:any)=>value&&typeof value==='object'&&!Array.isArray(value);
 

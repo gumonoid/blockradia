@@ -3,11 +3,25 @@ import {additionalSignals,amlStatus} from './aml-status.ts';
 import {currentAdditionalSources} from './aml-refresh.ts';
 import type {ScannerFeed,ScannerSource,ScannerFinding} from './aml-scanner-types.ts';
 
-const allowedHosts=new Set(['api.gopluslabs.io','docs.gopluslabs.io','eth.blockscout.com','base.blockscout.com','arbitrum.blockscout.com','optimism.blockscout.com','polygon.blockscout.com','tronscan.org']);
+import {chains,explorers,securityFlags} from './aml-scanner-types.ts';
+
+function requiredChecks(network:string):Record<string,number>{
+ if(Object.hasOwn(explorers,network))return {goplus:securityFlags.length+1,blockscout:1};
+ if(network==='tron')return {goplus:securityFlags.length+1,tronscan:1};
+ return {};
+}
+
+function sourceOrigin(network:string,id:string){
+ if(id==='goplus')return Object.hasOwn(chains,network)?'https://api.gopluslabs.io':'https://docs.gopluslabs.io';
+ if(id==='blockscout'&&Object.hasOwn(explorers,network))return 'https://'+explorers[network];
+ if(id==='tronscan'&&network==='tron')return 'https://tronscan.org';
+ return null;
+}
+
 export function validScannerFeed(value:any,network:string,address:string):value is ScannerFeed{
  const same=typeof value?.address==='string'&&(/^0x/i.test(address)?value.address.toLowerCase()===address.toLowerCase():value.address===address);
  return value?.network===network&&same&&Number.isFinite(Date.parse(value.checkedAt))&&Array.isArray(value.sources)&&value.sources.length>0&&value.sources.length<=3&&value.sources.every((s:any)=>{
-  try{return ['goplus','blockscout','tronscan'].includes(s.id)&&typeof s.name==='string'&&s.name.length<=50&&allowedHosts.has(new URL(s.url).hostname)&&new URL(s.url).protocol==='https:'&&!new URL(s.url).username&&!new URL(s.url).password&&['ok','partial','unsupported','unavailable','not_configured'].includes(s.status)&&Number.isSafeInteger(s.checks)&&Number.isSafeInteger(s.totalChecks)&&s.checks>=0&&s.checks<=s.totalChecks&&s.totalChecks<=100&&(s.checkedAt===null||Number.isFinite(Date.parse(s.checkedAt)))&&Array.isArray(s.findings)&&s.findings.length<=40&&s.findings.every((f:any)=>['risk','label'].includes(f.kind)&&typeof f.code==='string'&&f.code.length<=80&&typeof f.label==='string'&&f.label.length<=200&&(f.attribution===undefined||typeof f.attribution==='string'&&f.attribution.length<=200));}catch{return false;}
+  try{return ['goplus','blockscout','tronscan'].includes(s.id)&&typeof s.name==='string'&&s.name.length<=50&&new URL(s.url).origin===sourceOrigin(network,s.id)&&new URL(s.url).protocol==='https:'&&!new URL(s.url).username&&!new URL(s.url).password&&['ok','partial','unsupported','unavailable','not_configured'].includes(s.status)&&Number.isSafeInteger(s.checks)&&Number.isSafeInteger(s.totalChecks)&&s.checks>=0&&s.checks<=s.totalChecks&&s.totalChecks<=100&&(s.checkedAt===null||Number.isFinite(Date.parse(s.checkedAt)))&&Array.isArray(s.findings)&&s.findings.length<=40&&s.findings.every((f:any)=>['risk','label'].includes(f.kind)&&typeof f.code==='string'&&f.code.length<=80&&typeof f.label==='string'&&f.label.length<=200&&(f.attribution===undefined||typeof f.attribution==='string'&&f.attribution.length<=200));}catch{return false;}
  });
 }
 
@@ -25,7 +39,11 @@ export function buildAMLReview(network:string,address:string,bundle:any,feed?:Sc
  const historyIncomplete=!!bundle.history_loading||!!bundle.partial_history||!!bundle.history_error||!!bundle.warnings?.length||!report.transferCount;
  const additionalSources=currentAdditionalSources();
  const additionalStale=['ethereum','base','arbitrum','optimism','polygon'].includes(network)&&additionalSources.some(s=>{const age=Date.now()-Date.parse(s.retrievedAt);return !Number.isFinite(age)||age<0||age>86400000;});
- const scannersIncomplete=!scannerFresh||!scanners?.sources.length||scanners.sources.some(s=>s.status!=='ok'||!s.totalChecks||s.checks!==s.totalChecks);
+ const required=Object.entries(requiredChecks(network));
+ const completeCoverage=required.length>0 && scanners?.sources.length===required.length &&
+  required.every(([id,expected])=>scanners.sources.some(source=>
+   source.id===id && source.status==='ok' && source.checks===expected && source.totalChecks===expected));
+ const scannersIncomplete=!scannerFresh||!completeCoverage;
  const rating=amlStatus(report.sanctions,report.counterparties.map(p=>p.sanctions),signals.reduce((n,p)=>n+p.items.length,0)+scannerRisk.length,historyIncomplete||scannersIncomplete||additionalStale);
  return {report,signals,rating,scanners,scannerFresh,historyIncomplete,additionalStale,
   additionalSources:additionalSources.map(s=>({name:s.name,source:s.source,retrievedAt:s.retrievedAt,recordCount:s.records.length,scope:s.scope,sha256:s.sha256})),scannerRisk};

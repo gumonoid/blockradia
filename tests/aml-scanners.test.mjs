@@ -117,6 +117,11 @@ test('green requires fresh complete sources; counterparty sanctions are yellow a
  const collect=createScannerCollector(async url=>url.includes('goplus')?go():{hash:address,is_scam:false,name:'Exchange label'},{});
  const scanners=await collect('ethereum',address);
  assert.equal(buildAMLReview('ethereum',address,bundle,scanners).rating.color,'green');
+ for(const sources of [[scanners.sources[0]], [scanners.sources[0],scanners.sources[0]],
+  [{...scanners.sources[0],checks:1,totalChecks:1},scanners.sources[1]],
+  [{...scanners.sources[0],url:scanners.sources[1].url},scanners.sources[1]]]){
+  assert.equal(buildAMLReview('ethereum',address,bundle,{...scanners,sources}).rating.color,'yellow');
+ }
  const staleSource={...scanners,sources:scanners.sources.map(s=>({...s,checkedAt:'2020-01-01T00:00:00Z'}))};
  assert.equal(buildAMLReview('ethereum',address,bundle,staleSource).rating.color,'yellow');
  const emptyChecks={...scanners,sources:scanners.sources.map(s=>({...s,checks:0,totalChecks:0}))};
