@@ -24,6 +24,7 @@ export function telegramClient(token,transport=fetch){
    response=await transport('https://api.telegram.org/bot'+token+'/'+method,{method:'POST',body:payload,headers,redirect:'error',signal:controller});
   }catch{throw new TelegramError(method,'transport');}
   const data=await response.json().catch(()=>null);
+  if(method==='editMessageText' && data?.error_code===400 && data?.description?.includes('message is not modified'))return true;
   if(!response.ok||!data?.ok)throw new TelegramError(method,data?.error_code||response.status,Math.min(60,Number(data?.parameters?.retry_after)||0));
   return data.result;
  };

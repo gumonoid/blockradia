@@ -18,7 +18,7 @@ const bundle=()=>({
  transfers:[{id:'a',hash:'a'.repeat(64),from:wallet,to:peer,amount:'1',symbol:'BTC',asset:'native',kind:'native'}],
  warnings:[],
 });
-function harness(){
+function harness(adminIds=''){
  const store=new BotStore(':memory:'),calls=[],reads=[];
  let data=bundle();
  const api=async(method,body,file)=>{
@@ -33,7 +33,7 @@ function harness(){
   if(action==='portfolio')return {assets:[{asset:'native',symbol:'BTC',balance:'1',usd:100}],knownUSD:100,unpriced:0,source:'fixture'};
   return data;
  };
- const bot=createBot({api,store,explorer,username:'BlockRadiaTestBot'});
+ const bot=createBot({api,store,explorer,username:'BlockRadiaTestBot',adminIds});
  const message=(text,{id=1,chat=1,type='private'}={})=>({update_id:1,message:{text,from:{id},chat:{id:chat,type}}});
  return {store,calls,reads,bot,message,setData:value=>{data=value;}};
 }
@@ -240,4 +240,75 @@ test('independent chats progress while earlier updates keep their offset',async(
  assert.deepEqual(done,[11]);assert.deepEqual(offsets,[]);
  release();await pending;
  assert.deepEqual(done,[11,10,12]);assert.deepEqual(offsets,[12,13]);
+});
+
+test('admin commands and callbacks require a configured owner in their private chat',async()=>{
+ const {bot,store,message,calls}=harness('1, 3');
+ store.set('user:2:watches',[{address:'private-wallet'}]);
+ store.set('session:old',{created:0});
+ await bot.handle(message('/admin',{id:2,chat:2}));
+ assert.match(calls.at(-1).body.text,/ограничен/);
+ await bot.handle(message('/admin'));
+ assert.match(calls.at(-1).body.text,/Отслеживаемые адреса: 1/);
+ assert.doesNotMatch(calls.at(-1).body.text,/private-wallet/);
+ for(const [id,chat,type] of [[2,2,'private'],[1,-10,'group'],[1,2,'private'],[1,1,'private']]){
+  await bot.handle({callback_query:{id:'x',data:'admin:prune',from:{id},message:{chat:{id:chat,type}}}});
+  assert.equal(store.get('session:old')===null,id===1&&chat===1);
+ }
+ store.close();
+});
+
+test('admin directory paginates, excludes wallet data, and enforces saved request limits',async()=>{
+ const {bot,store,calls,message}=harness('1');
+ const click=(action,id=1)=>bot.handle({callback_query:{id:'click',data:'admin:'+action,from:{id},message:{message_id:55,chat:{id,type:'private'}}}});
+ for(let id=2;id<=11;id++)store.set('user:'+id+':recent',[{address:'sensitive-address'}]);
+ store.set('group:-42:auto',false);
+ await click('users:0');
+ assert.equal(calls.at(-1).method,'editMessageText');
+ assert.doesNotMatch(calls.at(-1).body.text,/sensitive-address|ID 11/);
+ await click('users:1');assert.match(calls.at(-1).body.text,/ID 11/);
+ await click('groups:0');assert.match(calls.at(-1).body.text,/ID -42 · автопоиск выключен/);
+ await click('limit:3',2);assert.equal(store.get('admin:limit'),null);
+ await click('limit:3');assert.equal(store.get('admin:limit'),3);
+ for(let i=0;i<4;i++)await bot.handle(message('/myid',{id:2,chat:2}));
+ assert.equal(calls.filter(c=>c.method==='sendMessage'&&c.body.chat_id===2).length,3);
+ await click('health');assert.match(calls.at(-1).body.text,/сверх лимита: 1/);
+ await click('aml');assert.match(calls.at(-1).body.text,/записей/);
+ store.close();
+});
+
+test('group timezone commands cannot expose or modify a personal setting',async()=>{
+ const h=harness();
+ try{
+  await h.bot.handle(h.message('/timezone Europe/Kyiv'));
+  for(const command of ['/timezone','/timezone America/New_York']){
+   await h.bot.handle(h.message(command,{chat:-12,type:'supergroup'}));
+   assert.match(h.calls.at(-1).body.text,/Group history uses UTC/);
+   assert.equal(h.store.get('user:1:timezone'),'Europe/Kyiv');
+  }
+ }finally{h.store.close();}
+});
+
+test('deleting the account while an AML notice is in flight cannot restore watches',async()=>{
+ const store=new BotStore(':memory:');
+ const started=Promise.withResolvers(),sent=Promise.withResolvers();
+ const bot=createBot({
+  store,username:'test',explorer:async()=>bundle(),
+  api:async(method,body)=>{
+   if(body.text?.startsWith('AML attribution changed')){
+    started.resolve();await sent.promise;
+   }
+   return {message_id:1};
+  }
+ });
+ try{
+  store.set('user:1:watches',[{network:'bitcoin',address:wallet,createdAt:1,seen:[],
+   amlSnapshot:{labels:'old',hashes:[]}}]);
+  const monitor=bot.monitor();
+  await started.promise;
+  await bot.handle({message:{chat:{id:1,type:'private'},from:{id:1},text:'/delete_me'}});
+  sent.resolve();
+  await monitor;
+  assert.deepEqual(store.entries('user:1:'),[]);
+ }finally{sent.resolve();store.close();}
 });

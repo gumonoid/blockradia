@@ -1,5 +1,5 @@
 import {analyzeAML} from '../lib/aml.ts';
-import {additionalSignals,amlStatus} from '../lib/aml-status.ts';
+import {buildAMLReview,amlExplanation,scannerStatus} from '../lib/aml-review.ts';
 import {csvCell} from '../lib/csv.ts';
 import {largeTransfers} from '../lib/large-transfers.ts';
 import {coverage} from '../lib/research.ts';
@@ -7,10 +7,7 @@ import {displayWalletAddress} from '../lib/wallet-address.ts';
 import {networks,units,escapeHTML as esc,short,explorerLink} from './networks.mjs';
 
 export function amlReport(network,address,bundle){
- const report=analyzeAML(network,address,bundle.transfers||[]);
- const signals=[{address,items:additionalSignals(network,address)},...report.counterparties.map(p=>({address:p.address,items:additionalSignals(network,p.address)}))].filter(p=>p.items.length);
- const rating=amlStatus(report.sanctions,report.counterparties.map(p=>p.sanctions),signals.reduce((n,p)=>n+p.items.length,0),!!bundle.partial_history||!!bundle.history_error||!!bundle.warnings?.length||!report.transferCount);
- return {report,signals,rating};
+ return buildAMLReview(network,address,bundle,bundle.scannerEvidence);
 }
 
 export function walletText(network,address,bundle,price,label){
@@ -68,18 +65,28 @@ export function historyText(network,rows,page=0,timeZone='UTC'){
 }
 
 export function amlText(network,address,bundle){
- const {report,signals,rating}=amlReport(network,address,bundle);
+ const review=amlReport(network,address,bundle);
+ const {report,signals,rating,scanners}=review;
  const findings=[
-  ...report.sanctions.matches.map(m=>'<a href="'+esc(m.source)+'">'+esc(m.entity)+'</a> · '+esc(m.currency)+' · '+esc(m.scope)),
+  ...report.sanctions.matches.map(m=>'This address · <a href="'+esc(m.source)+'">'+esc(m.entity)+'</a> · '+esc(m.currency)+' · '+esc(m.scope)),
   ...report.counterparties.filter(p=>p.sanctions.matches.length).slice(0,5).map(p=>'Counterparty <code>'+esc(p.address)+'</code> · '+p.sanctions.matches.map(m=>esc(m.entity)).join(', ')),
   ...signals.slice(0,5).flatMap(p=>p.items.slice(0,2).map(s=>'<code>'+esc(p.address)+'</code>\n<a href="'+esc(s.source)+'">'+esc(s.name)+'</a> · '+esc(s.date||'undated')+' · '+esc(s.scope))),
  ];
  return ['<b>'+({red:'🔴',yellow:'🟡',green:'🟢'}[rating.color])+' AML · '+esc(rating.reason.replaceAll('_',' '))+'</b>',
   '<code>'+esc(address)+'</code>',
+  '<b>Why this result?</b>\n'+esc(amlExplanation(review)[0]),
   'OFAC retrieved: '+esc(report.sanctions.retrievedAt),
   'Snapshot: '+(report.sanctions.fresh?'fresh':'STALE'),
+  ...review.additionalSources.map(s=>esc(s.name)+' · retrieved '+esc(s.retrievedAt)),
+  ...(review.additionalStale?['Additional lists are stale; current status is unverified.']:[]),
   'Coverage: '+esc(report.sanctions.status)+' · '+report.transferCount+' loaded transfers',
   ...findings,
+  '<b>Live scanners · this address only</b>',
+  ...(scanners?scanners.sources.map(s=>'<a href="'+esc(s.url)+'">'+esc(s.name)+'</a> · '+esc(scannerStatus(s))+(s.totalChecks?' · '+s.checks+'/'+s.totalChecks:'')+'\nRetrieved: '+esc(s.checkedAt||'not checked')+'\n'+(s.findings.length?s.findings.map(f=>(f.kind==='risk'?'Source signal: ':'Public label: ')+esc(f.label)+(f.attribution?' · '+esc(f.attribution):'')).join('\n'):s.status==='ok'?'No risk flags returned; not a safety certification.':'')):['Live scanners have not returned a valid result.']),
+  ...(!review.scannerFresh?['Scanner evidence is missing or expired; refresh the check.']:[]),
+  'Counterparties are checked against downloaded lists. Online scans cover this address only. Incoming transfers may be unsolicited; counterparty findings do not prove wrongdoing by this wallet.',
+  'Exchange labels are context. Providers may reuse the same reports; they are not independent votes. No invented percentage score.',
+
   'The result covers loaded data and the named snapshots. Green means no signals in this sample. Historical community reports and counterparty matches require review.',
  ].join('\n\n');
 }

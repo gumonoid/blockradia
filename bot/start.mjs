@@ -1,3 +1,5 @@
+import {readBoundedJSON,sharedResponseLimit} from '../lib/bounded-json.ts';
+import {collectScannerEvidence} from '../lib/aml-scanners.ts';
 import {processBatch} from './batch.mjs';
 import http from 'node:http';
 import {resolve} from 'node:path';
@@ -24,13 +26,15 @@ async function explorer(network,action,address='',options={}){
  const query=new URLSearchParams({network,action,...(address?{q:address}:{})});
  for(const [key,value] of Object.entries(options))if(value!==undefined)query.set(key,String(value));
  const response=await fetch(origin+'/api/explorer?'+query,{redirect:'error',signal:AbortSignal.timeout(70000)});
- const data=await response.json().catch(()=>null);
+ if(action==='aml-address'&&[400,404].includes(response.status)){await response.body?.cancel();return collectScannerEvidence(network,address);}
+ const data=await readBoundedJSON(response,sharedResponseLimit(action)).catch(()=>null);
  lastPoll=Date.now();
  if(!response.ok||!data||data.error)throw Error('Blockchain data source temporarily unavailable.');
  return data;
 }
 
 const commands=[
+ ['myid','Мой Telegram ID'],
  ['portfolio','Портфель по сетям'],['compare','Сравнить кошельки'],['changes','Что изменилось'],['rule','Правила уведомлений'],['aml_update','Обновить базы AML'],
  ['start','Открыть меню бота'],['help','Все команды'],
  ['wallet','Баланс и проверка кошелька'],['tx','Проверить транзакцию'],
@@ -56,7 +60,7 @@ try{
  }
  await api('setMyCommands',{commands});
  await api('setChatMenuButton',{menu_button:{type:'commands'}});
- const bot=createBot({api,store,explorer,username:me.username});
+ const bot=createBot({api,store,explorer,username:me.username,adminIds:process.env.TELEGRAM_ADMIN_IDS});
  await new Promise((done,reject)=>server.once('error',reject).listen(port,'0.0.0.0',done));
  console.log('BlockRadia chat bot started: @'+me.username);
  const monitor=setInterval(async()=>{

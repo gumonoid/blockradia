@@ -44,6 +44,10 @@ Packaged downloads include the desktop runtime. An internet connection supplies 
 
 Exchange labels include their source and coverage notes. [Exchange address registry](docs/EXCHANGE_LABELS.md)
 
+### Explainable AML
+
+The desktop AML panel and Telegram bot combine OFAC and additional public lists with GoPlus security flags, Blockscout public labels/scam flags, and TRONSCAN tags when a server key is configured. Each result explains its color, distinguishes direct findings from counterparty matches, and shows source availability and retrieval times. Missing data is never treated as a clean result. Online scanner coverage varies by network; there is no invented risk percentage. [Sources, coverage and interpretation](docs/AML_SOURCES.md).
+
 ## Supported networks
 
 Base and Polygon wallet history uses Alchemy through the shared server. End users do not need provider keys. Their overview combines recent RPC blocks with growthepie analytics: network-wide daily transactions, daily active addresses, and a 30-day activity chart. Daily statistics show their UTC date and source; they are not all-time transaction or address totals. The current incomplete UTC day is excluded. [growthepie definitions and coverage](https://docs.growthepie.com/).

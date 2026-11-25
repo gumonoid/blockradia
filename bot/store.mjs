@@ -20,6 +20,19 @@ export class BotStore{
  entries(prefix){
   return this.db.prepare('SELECT key,value FROM state WHERE substr(key,1,?)=?').all(prefix.length,prefix).map(row=>[row.key,JSON.parse(row.value)]);
  }
+ adminDirectory(section,offset,limit){
+  const users = "SELECT DISTINCT CAST(substr(key,6,instr(substr(key,6),':')-1) AS INTEGER) AS id FROM state WHERE key GLOB 'user:*:*' ORDER BY id LIMIT ? OFFSET ?";
+  const groups = "SELECT CAST(substr(key,7,length(key)-11) AS INTEGER) AS id, (value='true') AS enabled FROM state WHERE key GLOB 'group:*:auto' ORDER BY id LIMIT ? OFFSET ?";
+  return this.db.prepare(section==='users'?users:groups).all(limit,offset);
+ }
+ adminStats(){
+  return this.db.prepare(`SELECT
+   COUNT(DISTINCT CASE WHEN key GLOB 'user:*:*' THEN substr(key,6,instr(substr(key,6),':')-1) END) AS users,
+   COUNT(CASE WHEN key GLOB 'group:*:auto' THEN 1 END) AS groups,
+   COUNT(CASE WHEN key GLOB 'session:*' THEN 1 END) AS sessions,
+   COALESCE(SUM(CASE WHEN key GLOB 'user:*:watches' THEN json_array_length(value) END),0) AS watches
+   FROM state`).get();
+ }
  watches(){
   return this.db.prepare("SELECT key,value FROM state WHERE key GLOB 'user:*:watches'").all().map(row=>[row.key,JSON.parse(row.value)]);
  }

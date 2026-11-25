@@ -47,3 +47,9 @@ body{font-family:Manrope,"Segoe UI","Microsoft YaHei","PingFang SC",Arial,sans-s
 .aml-rating-green { color: #176b45; background: #e9f9ef; border-color: #309467; }
 .aml-rating-yellow { color: #754b00; background: #fff6d9; border-color: #b9830d; }
 .aml-rating-red { color: #a32335; background: #fff0f1; border-color: #c44356; }
+
+.aml-explanation { margin: 18px 0; padding: 18px 20px; border: 1px solid var(--line); border-radius: 12px; }
+.aml-explanation h3, .aml-source-card h4 { margin: 0 0 8px; }
+.aml-source-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr)); gap: 12px; margin: 16px 0; }
+.aml-source-card { padding: 18px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; overflow-wrap: anywhere; }
+.aml-source-card small { color: var(--muted); }

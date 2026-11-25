@@ -1,3 +1,4 @@
+import {createAdminPanel} from './admin.mjs';
 import {randomBytes} from 'node:crypto';
 import {networks,candidates,extractAddresses,units,escapeHTML as esc,short,explorerLink} from './networks.mjs';
 import {walletText,transactionRows,historyText,amlText,amlReport,csvReport,graphSVG,priceSVG} from './reports.mjs';
@@ -5,6 +6,7 @@ import {exchangeAddresses,getExchangeLabel} from '../lib/exchanges.ts';
 import {renderPNG} from './png.mjs';
 import {coverage,compareWallets,researchSnapshot,changesSince,matchesAlert} from '../lib/research.ts';
 import {refreshAML} from '../lib/aml-refresh.ts';
+import {validScannerFeed,amlExplanation} from '../lib/aml-review.ts';
 
 const help=[
  '<b>BlockRadia</b>',
@@ -44,7 +46,9 @@ const networkName=value=>aliases[value?.toLowerCase()]||value?.toLowerCase();
 const group=chat=>chat.type==='group'||chat.type==='supergroup';
 const safeRows=bundle=>(bundle.transactions||[]).slice(0,200);
 
-export function createBot({api,store,explorer,username}){
+export function createBot({api,store,explorer:fetchExplorer,username,adminIds=''}){
+ const admins=new Set(adminIds.split(',').map(id=>id.trim()).filter(id=>/^[1-9][0-9]*$/.test(id)));
+ const isAdmin=(chat,owner)=>chat?.type==='private'&&chat.id===owner&&admins.has(String(owner));
  const quotas=new Map();
  const userKey=(id,name)=>'user:'+id+':'+name;
  const say=(chat,text,extra={})=>{
@@ -54,6 +58,12 @@ export function createBot({api,store,explorer,username}){
   const content=long?text.replace(/<[^>]*>/g,'').replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&quot;','"').replaceAll('&amp;','&').slice(0,3900)+'\n… /export':text;
   return api('sendMessage',{chat_id:chat.id,text:content,...(long?{}:{parse_mode:'HTML'}),link_preview_options:{is_disabled:true},...extra});
  };
+ const adminPanel=createAdminPanel({api,store,say,explorer});
+ async function explorer(...args){
+  adminPanel.metrics.requests++;
+  try{return await fetchExplorer(...args);}
+  catch(error){adminPanel.metrics.failures++;throw error;}
+ }
  const sendFile=(chat,name,content,type)=>api('sendDocument',{chat_id:chat.id},{name,content,type});
  const sendChart=(chat,name,svg)=>api('sendPhoto',{chat_id:chat.id},{name,content:renderPNG(svg),type:'image/png'});
 
@@ -61,7 +71,9 @@ export function createBot({api,store,explorer,username}){
   const now=Date.now(),key=String(chatId),entry=quotas.get(key);
   if(quotas.size>10000)for(const [id,q] of quotas)if(q.until<now)quotas.delete(id);
   if(!entry||entry.until<now){quotas.set(key,{count:1,until:now+60000});return true;}
-  return ++entry.count<=6;
+  if(++entry.count<=adminPanel.limit())return true;
+  adminPanel.metrics.throttled++;
+  return false;
  }
 
  function session(owner,chat,network,address,bundle){
@@ -85,9 +97,10 @@ export function createBot({api,store,explorer,username}){
   if(!Object.hasOwn(networks,network)||!candidates(address).includes(network)){
    await say(chat,'Check the network and wallet address. Пример /wallet tron T…');return;
   }
-  const [history,balance]=await Promise.allSettled([
+  const [history,balance,scanner]=await Promise.allSettled([
    explorer(network,'address',address,{mode:network==='solana'?'extended':undefined}),
    explorer(network,'balance',address),
+   explorer(network,'aml-address',address),
   ]);
   if(history.status==='rejected'&&balance.status==='rejected')throw Error('Wallet sources unavailable');
   const bundle=history.status==='fulfilled'?history.value:{
@@ -97,6 +110,7 @@ export function createBot({api,store,explorer,username}){
   if(balance.status==='fulfilled'&&bundle.data?.coin_balance==null){
    bundle.data={...bundle.data,coin_balance:balance.value.data?.coin_balance};
   }
+  bundle.scannerEvidence=scanner.status==='fulfilled'&&validScannerFeed(scanner.value,network,address)?scanner.value:null;
   await refreshAML(()=>explorer(network,'aml','')).catch(()=>{});
   const id=session(owner,chat,network,address,bundle);
   let changes;
@@ -126,6 +140,11 @@ export function createBot({api,store,explorer,username}){
  async function render(chat,owner,data,id,view,filter={}){
   const {network,address,bundle}=data;
   if(view==='aml'){
+   if(!validScannerFeed(bundle.scannerEvidence,network,address)||Date.now()-Date.parse(bundle.scannerEvidence.checkedAt)>300000){
+    const fresh=await explorer(network,'aml-address',address).catch(()=>null);
+    bundle.scannerEvidence=validScannerFeed(fresh,network,address)?fresh:null;
+    store.set('session:'+id,{...data,bundle,owner,chat:chat.id,created:Date.now()});
+   }
    await say(chat,amlText(network,address,bundle),{reply_markup:keyboard(id,network,address)});
    return;
   }
@@ -143,7 +162,7 @@ export function createBot({api,store,explorer,username}){
    const columns=store.get(userKey(owner,'columns'));
    await sendFile(chat,'blockradia-'+network+'.csv',csvReport(network,rows,columns||undefined),'text/csv');
    const report=amlReport(network,address,bundle);
-   await sendFile(chat,'blockradia-aml.json',JSON.stringify({network,address,...report,coverage:bundle.coverage,warnings:bundle.warnings},null,2),'application/json');
+   await sendFile(chat,'blockradia-aml.json',JSON.stringify({network,address,...report,explanation:amlExplanation(report),coverage:bundle.coverage,warnings:bundle.warnings},null,2),'application/json');
    return;
   }
   const status=['confirmed','pending','large'].includes(view)?view:filter.status||'all';
@@ -155,7 +174,7 @@ export function createBot({api,store,explorer,username}){
   if(page>0)buttons.push(button(id,'←','page',String(page-1)));
   if((page+1)*10<rows.length)buttons.push(button(id,'→','page',String(page+1)));
   const warning=bundle.partial_history||bundle.history_error?'⚠ Partial history / Неполная история\n'+esc(bundle.history_error||'Some operations may be missing.')+'\n\n':'';
-  await say(chat,warning+(rows.length?historyText(network,rows,page,store.get(userKey(owner,'timezone'),'UTC')):'No transactions in this loaded sample / Нет операций в этой выборке.'),{reply_markup:{inline_keyboard:[...(buttons.length?[buttons]:[]),[button(id,'Wallet','refresh'),button(id,'CSV / JSON','export')]]}});
+  await say(chat,warning+(rows.length?historyText(network,rows,page,chat.type==='private'?store.get(userKey(owner,'timezone'),'UTC'):'UTC'):'No transactions in this loaded sample / Нет операций в этой выборке.'),{reply_markup:{inline_keyboard:[...(buttons.length?[buttons]:[]),[button(id,'Wallet','refresh'),button(id,'CSV / JSON','export')]]}});
  }
 
  async function detect(chat,owner,address){
@@ -190,6 +209,11 @@ export function createBot({api,store,explorer,username}){
  async function callback(update){
   const q=update.callback_query;
   await api('answerCallbackQuery',{callback_query_id:q.id});
+  if(q.data?.startsWith('admin:')){
+   const chat=q.message?.chat;
+   if(!isAdmin(chat,q.from?.id))return;
+   return adminPanel.show(chat,q.data.slice(6),q.message.message_id);
+  }
   const match=/^br:([0-9a-f]{16}):([a-z]+):([a-z0-9]*)$/.exec(q.data||'');
   if(!match||!q.message)return;
   const [,id,action,arg]=match,data=store.get('session:'+id),chat=q.message.chat,owner=q.from.id;
@@ -215,6 +239,15 @@ export function createBot({api,store,explorer,username}){
 
  async function command(message,owner,command,args){
   const chat=message.chat;
+  if(command==='myid'){
+   if(chat.type==='private')await say(chat,'Ваш Telegram ID: <code>'+owner+'</code>');
+   return;
+  }
+  if(command==='admin'){
+   if(isAdmin(chat,owner))return adminPanel.show(chat);
+   if(chat.type==='private')await say(chat,'Доступ к панели ограничен.');
+   return;
+  }
   if(['start','help'].includes(command)){
    await say(chat,help,{reply_markup:{inline_keyboard:[[{text:'Add to group / Добавить в группу',url:'https://t.me/'+username+'?startgroup=true'}]]}});
    return;
@@ -229,7 +262,7 @@ export function createBot({api,store,explorer,username}){
    await say(chat,rows.length?rows.map(r=>'<b>'+esc(getExchangeLabel(r.network,r.address)?.name)+'</b> · '+esc(r.network)+'\n<code>'+esc(r.address)+'</code>\n<a href="'+esc(r.source)+'">Source</a> · '+esc(r.checkedAt)).join('\n\n'):'No exchange labels found.');return;
   }
   if(command==='aml_update'){
-   try{await refreshAML(()=>explorer('bitcoin','aml',''),true);await say(chat,'AML sources checked. Snapshot dates are shown in /aml.');}
+   try{await refreshAML(()=>explorer('bitcoin','aml',''));await say(chat,'AML sources checked. Snapshot dates are shown in /aml.');}
    catch{await say(chat,'AML update unavailable. Previous snapshots retained.');}return;
   }
   if(command==='changes'){
@@ -288,6 +321,7 @@ export function createBot({api,store,explorer,username}){
    await say(chat,'Automatic wallet checks '+args[0]+'.');return;
   }
   if(command==='timezone'){
+   if(chat.type!=='private'){await say(chat,'Group history uses UTC. Manage your timezone in private chat.');return;}
    try{new Intl.DateTimeFormat('en',{timeZone:args[0]}).format();}
    catch{await say(chat,'Use an IANA timezone such as Europe/Kyiv or UTC.');return;}
    if(!args[0]){await say(chat,'Current timezone: '+esc(store.get(userKey(owner,'timezone'),'UTC')));return;}
@@ -405,7 +439,7 @@ export function createBot({api,store,explorer,username}){
   const match=/^\/([a-z_]+)(?:@([a-z0-9_]+))?(?:\s+([\s\S]*))?$/i.exec(text.trim());
   if(match){
    if(match[2]&&match[2].toLowerCase()!==username.toLowerCase())return;
-   if(!allow(chat.id))return;
+   if(!(match[1].toLowerCase()==='admin'&&isAdmin(chat,owner))&&!allow(chat.id))return;
    await command(message,owner,match[1].toLowerCase(),(match[3]||'').trim().split(/\s+/).filter(Boolean));
    return;
   }
@@ -419,32 +453,41 @@ export function createBot({api,store,explorer,username}){
   for(const [key,list] of store.watches()){
    const owner=Number(key.split(':')[1]);
    for(const watch of [...list]){
+    const sameSubscription=w=>w.network===watch.network&&w.address===watch.address&&w.createdAt===watch.createdAt;
     try{
      await refreshAML(()=>explorer(watch.network,'aml','')).catch(()=>{});
      const rootEvidence=amlReport(watch.network,watch.address,{transfers:[]});
      const rootSnapshot=researchSnapshot({}, {...rootEvidence.report,additionalSignals:rootEvidence.signals});
-     const currentWatches=store.get(key,[]),currentWatch=currentWatches.find(w=>w.network===watch.network&&w.address===watch.address);
+     const currentWatch=store.get(key,[]).find(sameSubscription);
      if(!currentWatch)continue;
      if(currentWatch.amlSnapshot&&changesSince(currentWatch.amlSnapshot,rootSnapshot).labelsChanged)await say({id:owner,type:'private'},'AML attribution changed · '+esc(watch.network)+'\n<code>'+esc(watch.address)+'</code>\n'+amlText(watch.network,watch.address,{transfers:[]}));
-     currentWatch.amlSnapshot=rootSnapshot;store.set(key,currentWatches);
+     const subscriptions=store.get(key,[]);
+     const subscribed=subscriptions.find(sameSubscription);
+     if(!subscribed)continue;
+     subscribed.amlSnapshot=rootSnapshot;
+     store.set(key,subscriptions);
      const data=await explorer(watch.network,'address',watch.address);
      if(data.history_error||data.partial_history)continue;
-     if(!store.get(key,[]).some(w=>w.network===watch.network&&w.address===watch.address))continue;
-     const rows=safeRows(data),seen=new Set(watch.seen);
-     const allowed=new Set((data.transfers||[]).filter(t=>matchesAlert({...watch.rule,network:watch.network},watch.address,t)).map(t=>t.hash));
-     const fresh=rows.filter(t=>!seen.has(t.hash)&&Number.isFinite(Date.parse(t.timestamp))&&Date.parse(t.timestamp)>=watch.createdAt&&(!watch.rule||allowed.has(t.hash)));
+     const activeWatch=store.get(key,[]).find(sameSubscription);
+     if(!activeWatch)continue;
+     const rows=safeRows(data),seen=new Set(activeWatch.seen);
+     const allowed=new Set((data.transfers||[]).filter(t=>matchesAlert({...activeWatch.rule,network:watch.network},watch.address,t)).map(t=>t.hash));
+     const fresh=rows.filter(t=>!seen.has(t.hash)&&Number.isFinite(Date.parse(t.timestamp))&&Date.parse(t.timestamp)>=watch.createdAt&&(!activeWatch.rule||allowed.has(t.hash)));
      if(fresh.length)await say({id:owner,type:'private'},'<b>Wallet activity / Активность кошелька</b>\n'+esc(watch.network)+'\n<code>'+esc(watch.address)+'</code>\n'+fresh.length+' new transactions in loaded sample.\n'+fresh.slice(0,3).map(t=>'<a href="'+esc(explorerLink(watch.network,t.hash,true))+'">'+esc(short(t.hash))+'</a>').join('\n'));
      // Re-read before saving, so /unwatch during an API call takes effect.
      const current=store.get(key,[]);
-     const item=current.find(w=>w.network===watch.network&&w.address===watch.address);
+     const item=current.find(sameSubscription);
      if(item){
-      item.seen=[...new Set([...rows.map(t=>t.hash),...watch.seen])].slice(0,500);
+      item.seen=[...new Set([...rows.map(t=>t.hash),...activeWatch.seen])].slice(0,500);
       item.checkedAt=new Date().toISOString();
 
       store.set(key,current);
      }
     }catch(error){
-     if(error.status===403)store.set(key,store.get(key,[]).filter(w=>w.network!==watch.network||w.address!==watch.address));
+     if(error.status===403){
+      const current=store.get(key,[]);
+      if(current.some(sameSubscription))store.set(key,current.filter(w=>!sameSubscription(w)));
+     }
     }
    }
   }

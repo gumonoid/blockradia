@@ -103,3 +103,15 @@ See [research workspace](RESEARCH_WORKSPACE.md) for portfolio, comparison, chang
 /rule 1 USDT 100 in
 /aml_update
 ~~~
+
+### Bot administrator panel
+
+Send `/myid` to the bot in a private chat. Set `TELEGRAM_ADMIN_IDS` to your numeric Telegram ID on the machine running the bot (comma-separated IDs for multiple admins), then restart it. Send `/admin` in your private chat to view aggregate storage statistics or prune expired sessions. The panel is disabled when no IDs are configured. The user count includes only users with saved data.
+
+The panel lists user IDs with stored data and groups with an explicit automatic lookup setting, eight per page. Diagnostics show process uptime, memory usage, explorer request failures, and rate-limit events since startup. The AML section shows locally loaded snapshots and can refresh them from the shared API. The per-chat limit can be set to 3, 6, or 12 actions per minute and persists across restarts. Session cleanup asks for confirmation.
+
+## Aggregated AML explanations
+
+Use `/aml ethereum 0x...` or the **AML** button on a wallet card. The report explains the color and shows direct sanctions matches, counterparty evidence, and live provider results separately. GoPlus supports the five EVM networks and TRON; Blockscout provides EVM public labels and scam flags. TRONSCAN tags require `TRONSCAN_API_KEY` on the updated shared API server (or on the bot process when using its local fallback). Missing keys, unsupported networks, partial responses and provider outages are explicit.
+
+Online scans receive only the public address and selected network. They check the searched address; counterparties are screened against downloaded lists. The bot does not convert a counterparty label into guilt or assign invented risk percentages. Use **Refresh** to update the wallet, and `/export network address` for the full JSON evidence. See [AML source documentation](AML_SOURCES.md) for cache timings, coverage and color rules.
