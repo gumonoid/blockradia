@@ -288,3 +288,27 @@ test('group timezone commands cannot expose or modify a personal setting',async(
   }
  }finally{h.store.close();}
 });
+
+test('deleting the account while an AML notice is in flight cannot restore watches',async()=>{
+ const store=new BotStore(':memory:');
+ const started=Promise.withResolvers(),sent=Promise.withResolvers();
+ const bot=createBot({
+  store,username:'test',explorer:async()=>bundle(),
+  api:async(method,body)=>{
+   if(body.text?.startsWith('AML attribution changed')){
+    started.resolve();await sent.promise;
+   }
+   return {message_id:1};
+  }
+ });
+ try{
+  store.set('user:1:watches',[{network:'bitcoin',address:wallet,createdAt:1,seen:[],
+   amlSnapshot:{labels:'old',hashes:[]}}]);
+  const monitor=bot.monitor();
+  await started.promise;
+  await bot.handle({message:{chat:{id:1,type:'private'},from:{id:1},text:'/delete_me'}});
+  sent.resolve();
+  await monitor;
+  assert.deepEqual(store.entries('user:1:'),[]);
+ }finally{sent.resolve();store.close();}
+});

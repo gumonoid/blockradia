@@ -35,6 +35,13 @@ try {
       if (url.pathname !== '/api/explorer') return fetch(input,options);
       const address = url.searchParams.get('q');
       const action = url.searchParams.get('action');
+      if(action==='aml-address'){
+        return Response.json({
+          network:'bitcoin',address,checkedAt:new Date().toISOString(),
+          sources:[{id:'goplus',name:'GoPlus Security',url:'https://docs.gopluslabs.io/reference/addresscontractusingget_1',
+            status:'unsupported',checkedAt:null,checks:0,totalChecks:0,findings:[]}],
+        });
+      }
       const payload = action === 'address' || action === 'balance'
         ? {data:{hash:address, coin_balance:'100000000'}, canonical_address:address, transactions:[tx], transfers:[transfer]}
         : {transactions:[], stats:{}, chart:[]};
@@ -93,6 +100,7 @@ try {
   try {
     await page.locator('.search-submit').click();
     await graph.locator('.graph-edge').first().waitFor({state:'attached'});
+    await page.locator('.aml-source-card').getByRole('link',{name:'GoPlus Security'}).waitFor();
     assert.doesNotMatch(await graph.locator('.graph-coverage').innerText(),/\bundefined\b/);
     assert.equal(externalConnections,0);
   } catch (error) {
